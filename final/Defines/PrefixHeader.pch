@@ -1,0 +1,27 @@
+//
+//  PrefixHeader.pch
+//  final
+//
+//  Created by 吴智极 on 15/10/8.
+//  Copyright (c) 2015年 吴智极. All rights reserved.
+//
+
+#ifndef final_PrefixHeader_pch
+#define final_PrefixHeader_pch
+#import <UIKit/UIKit.h>
+#import <CoreLocation/CoreLocation.h>
+
+#import "Constant.h"
+#import "SVData.h"
+#import "SVCircleControl.h"
+#import "SVNetwork.h"
+#import "SVDate.h"
+#import "UIFont+SVFont.h"
+#import "NSString+SVString.h"
+
+#import <SDWebImage/UIImageView+WebCache.h>
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+
+#endif
