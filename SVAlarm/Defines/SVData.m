@@ -68,21 +68,34 @@
     [userDefaults setObject:_alarmArray forKey:@"alarmArray"];
     [userDefaults synchronize];
 }
-
+- (void)deleteAlarmInfo:(NSMutableDictionary *)info {
+    for (int i = 0; i<self.alarmArray.count; i++) {
+        NSMutableDictionary *dic = [self.alarmArray objectAtIndex:i];
+        if ([[dic objectForKey:@"ID"] isEqualToString:[info objectForKey:@"ID"]]) {
+            [_alarmArray removeObjectAtIndex:i];
+            break;
+        }
+    }
+    [self sortAlarmArray];
+    [userDefaults setObject:_alarmArray forKey:@"alarmArray"];
+    [userDefaults synchronize];
+}
 - (void)sortAlarmArray {
     NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.alarmArray];
-    for (int i = 0; i<tempArray.count-1; i++) {
-        for (int j = i+1; j<tempArray.count; j++) {
-            NSMutableDictionary *dicA = [tempArray objectAtIndex:i];
-            NSInteger minutesA = [[dicA objectForKey:@"hour"] integerValue] * 60 + [[dicA objectForKey:@"minute"] integerValue];
-            NSMutableDictionary *dicB = [tempArray objectAtIndex:j];
-            NSInteger minutesB = [[dicB objectForKey:@"hour"] integerValue] * 60 + [[dicB objectForKey:@"minute"] integerValue];
-
-            if (minutesA > minutesB) {
-                NSLog(@"minutesA = %d,i=%d",minutesA,i);
-                NSLog(@"minutesB = %d,j=%d",minutesB,j);
+    if (tempArray.count > 1) {
+        for (int i = 0; i<tempArray.count-1; i++) {
+            for (int j = i+1; j<tempArray.count; j++) {
+                NSMutableDictionary *dicA = [tempArray objectAtIndex:i];
+                NSInteger minutesA = [[dicA objectForKey:@"hour"] integerValue] * 60 + [[dicA objectForKey:@"minute"] integerValue];
+                NSMutableDictionary *dicB = [tempArray objectAtIndex:j];
+                NSInteger minutesB = [[dicB objectForKey:@"hour"] integerValue] * 60 + [[dicB objectForKey:@"minute"] integerValue];
                 
-                [tempArray exchangeObjectAtIndex:i withObjectAtIndex:j];
+                if (minutesA > minutesB) {
+                    NSLog(@"minutesA = %d,i=%d",minutesA,i);
+                    NSLog(@"minutesB = %d,j=%d",minutesB,j);
+                    
+                    [tempArray exchangeObjectAtIndex:i withObjectAtIndex:j];
+                }
             }
         }
     }

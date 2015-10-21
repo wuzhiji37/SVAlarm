@@ -26,5 +26,6 @@
 
 - (void)addAlarmInfo:(NSMutableDictionary *)info;
 - (void)changeAlarmInfo:(NSMutableDictionary *)info;
+- (void)deleteAlarmInfo:(NSMutableDictionary *)info;
 + (SVData *)sharedInstance;
 @end

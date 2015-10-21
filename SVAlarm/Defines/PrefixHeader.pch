@@ -9,6 +9,7 @@
 #ifndef SVAlarm_PrefixHeader_pch
 #define SVAlarm_PrefixHeader_pch
 #import <UIKit/UIKit.h>
+#import <CoreGraphics/CGBase.h>
 #import <CoreLocation/CoreLocation.h>
 #import <objc/runtime.h>
 #import "Constant.h"
@@ -18,6 +19,7 @@
 #import "SVCircleControl.h"
 #import "SVNetwork.h"
 #import "SVDate.h"
+#import "SVCalculate.h"
 #import "UIFont+SVFont.h"
 #import "NSString+SVString.h"
 

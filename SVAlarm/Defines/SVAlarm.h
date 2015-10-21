@@ -12,4 +12,5 @@
 + (void)addAlarmWithDic:(NSMutableDictionary *)dic isNew:(BOOL)isNew;
 + (void)cancelAlarmFromDic:(NSMutableDictionary *)dic;
 + (void)changeAlarmFromDic:(NSMutableDictionary *)dic toDic:(NSMutableDictionary *)newdic;
++ (void)deleteAlarmFromDic:(NSMutableDictionary *)dic;
 @end

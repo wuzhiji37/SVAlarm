@@ -7,8 +7,8 @@
 //
 
 #import "AlarmViewController.h"
+#import "AlarmTableViewCell.h"
 
-#define DIFF            (WIDTH(self.view)/21)
 #define COLOR_A_X       135
 #define COLOR_A_Y       206
 #define COLOR_A_Z       250
@@ -16,6 +16,11 @@
 #define COLOR_B_X       0
 #define COLOR_B_Y       0
 #define COLOR_B_Z       139
+
+#define ORANGE_1        RGB(160, 85, 32)
+#define ORANGE_2        RGB(200, 85, 32)
+#define ORANGE_3        RGB(240, 85, 32)
+
 @implementation AlarmViewController {
     
 }
@@ -23,30 +28,77 @@
     self = [super init];
     if (self) {
         self.automaticallyAdjustsScrollViewInsets = NO;
-        needUpdate = YES;
-        canUpdateWeather = NO;
-        NSLog(@"width = %@",@(self.view.frame.size.width));
-        
-        
-        
         self.view.backgroundColor = [self backcolorForMinute:[SVDate minutesOfToday]];
-        [self addNotifications];
+        [self addNotification];
+        [self addRecognizer];
         [self addTimer];
     }
     return self;
 }
-- (void)addNotifications {
+- (void)initProperty {
+    needUpdate = YES;
+    canUpdateWeather = NO;
+    isDay = YES;
+    _alarmArray = [SVData sharedInstance].alarmArray;
+    if ([[SVData sharedInstance].device isEqualToString:@"iphone"]) {
+        if ([SVData sharedInstance].width == 320) {
+            hourRadius = 15;
+            hourCircleLineWidth = 3;
+            hourHandleLineWidth = 3;
+            minuteRadius = 12;
+            minuteCircleLineWidth = 2;
+            minuteHandleLineWidth = 2;
+            secondRadius = 10;
+            secondCircleLineWidth = 1;
+            secondHandleLineWidth = 1;
+        } else {
+            hourRadius = 25;
+            hourCircleLineWidth = 3;
+            hourHandleLineWidth = 3;
+            minuteRadius = 15;
+            minuteCircleLineWidth = 2;
+            minuteHandleLineWidth = 2;
+            secondRadius = 10;
+            secondCircleLineWidth = 1;
+            secondHandleLineWidth = 1;
+        }
+        cellHeight = 80;
+        cellWidth = 80;
+    } else if ([[SVData sharedInstance].device isEqualToString:@"ipad"]) {
+        hourRadius = 40;
+        hourCircleLineWidth = 8;
+        hourHandleLineWidth = 5;
+        minuteRadius = 30;
+        minuteCircleLineWidth = 5;
+        minuteHandleLineWidth = 3;
+        secondRadius = 20;
+        secondCircleLineWidth = 3;
+        secondHandleLineWidth = 2;
+        
+        cellHeight = 150;
+        cellWidth = 150;
+    } else {
+        hourRadius = 25;
+        hourCircleLineWidth = 8;
+        hourHandleLineWidth = 5;
+        minuteRadius = 15;
+        minuteCircleLineWidth = 5;
+        minuteHandleLineWidth = 3;
+        secondRadius = 10;
+        secondCircleLineWidth = 3;
+        secondHandleLineWidth = 2;
+        
+        cellHeight = 80;
+        cellWidth = 80;
+    }
+}
+#pragma mark - Notification
+- (void)addNotification {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateTime:) name:@"updateTime" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateWeatherSun) name:@"updateWeather" object:nil];
 }
-
-- (void)addTimer {
-    _timer = [[NSTimer alloc] initWithFireDate:[NSDate date] interval:1 target:self selector:@selector(startUpdate) userInfo:nil repeats:YES];
-    [[NSRunLoop currentRunLoop] addTimer:_timer forMode:NSDefaultRunLoopMode];
-}
-#pragma mark - Notifications
 - (void)updateTime:(NSNotification *)noti {
-    NSMutableDictionary *userinfo = noti.userInfo;
+    NSMutableDictionary *userinfo = [NSMutableDictionary dictionaryWithDictionary:noti.userInfo];
     NSDateComponents *comp = (NSDateComponents *)[userinfo objectForKey:@"comp"];
     if (needUpdate) {
         //        NSLog(@"comp = %@",comp);
@@ -62,7 +114,7 @@
     //    NSLog(@"sun %@",@(nowM));
     [UIView animateWithDuration:.5
                           delay:0
-                        options:UIViewAnimationOptionAllowUserInteraction
+                        options:UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionAllowUserInteraction
                      animations:^{
                          self.view.backgroundColor = [self backcolorForMinute:nowM];
                      }
@@ -88,7 +140,7 @@
         [self setWeatherViewHidden:NO];
     }
     NSString *weatherStr = [weatherTodayDic objectForKey:@"type"];
-//    weatherStr = @"暴雨";
+    //    weatherStr = @"暴雨";
     NSString *weatherPinyin = [[weatherStr transformToMandarinWithMark:NO] stringByReplacingOccurrencesOfString:@" " withString:@""];
     NSString *imageUrlStr = [NSString stringWithFormat:@"http://php.weather.sina.com.cn/images/yb3/180_180/%@_%d.png", weatherPinyin, isDay?0:1];
     NSLog(@"image = %@",imageUrlStr);
@@ -103,7 +155,77 @@
     _weatherLabel_temper.font = FONT([UIFont fontsizeWithSize:_weatherLabel_temper.frame.size andText:_weatherLabel_temper.text]);
     
 }
+#pragma mark - Gesture
+- (void)addRecognizer {
+    _swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeDown:)];
+    _swipeDown.direction = UISwipeGestureRecognizerDirectionDown;
+    _swipeDown.delegate = self;
+    [self.view addGestureRecognizer:_swipeDown];
+    
+    _longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressTV:)];
+    _longPress.minimumPressDuration = 1;
+    [_alarmTV addGestureRecognizer:_longPress];
+    
+    _tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapSettingView:)];
+    [_alarmSettingView addGestureRecognizer:_tap];
+    
+    _swipeUp = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeUp:)];
+    _swipeUp.direction = UISwipeGestureRecognizerDirectionUp;
+    [_alarmTV addGestureRecognizer:_swipeUp];
+    [_alarmSettingView addGestureRecognizer:_swipeUp];
+}
+- (void)swipeDown:(UISwipeGestureRecognizer *)gesture {
+    NSLog(@"%s",__FUNCTION__);
+    CGRect frame = _alarmTV.frame;
+    frame.origin.y = 20;
+    [UIView animateWithDuration:0.5
+                          delay:0
+                        options:UIViewAnimationOptionLayoutSubviews
+                     animations:^{
+                         _alarmTV.frame = frame;
+                     } completion:^(BOOL finished) {
+                         _alarmSettingView.hidden = NO;
+                         NSLog(@"OK");
+                     }];
+}
+- (void)tapSettingView:(UITapGestureRecognizer *)gesture {
+    NSLog(@"%s",__FUNCTION__);
+    cellStatus = AlarmCellStatusNormal;
+    [_alarmTV reloadData];
+}
+- (void)longPressTV:(UILongPressGestureRecognizer *)gesture {
+    NSLog(@"%s",__FUNCTION__);
+    cellStatus = AlarmCellStatusEditing;
+    [_alarmTV reloadData];
+}
+- (void)swipeUp:(UISwipeGestureRecognizer *)gesture {
+    CGRect frame = _alarmTV.frame;
+    frame.origin.y = -HEIGHT(_alarmTV);
+    [UIView animateWithDuration:0.5
+                          delay:0
+                        options:UIViewAnimationOptionLayoutSubviews
+                     animations:^{
+                         _alarmTV.frame = frame;
+                     } completion:^(BOOL finished) {
+                         _alarmSettingView.hidden = YES;
+                         NSLog(@"OK");
+                     }];
+}
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+    if ([gestureRecognizer isEqual: _swipeDown]) {
+        CGPoint touchPoint = [touch locationInView:self.view];
+        if (distance(touchPoint, _circleView.center)  < _hourControl.circleRadius) {
+            return NO;
+        }
+        return YES;
+    }
+    return YES;
+}
 #pragma mark - Timer
+- (void)addTimer {
+    _timer = [[NSTimer alloc] initWithFireDate:[NSDate date] interval:1 target:self selector:@selector(startUpdate) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:_timer forMode:NSDefaultRunLoopMode];
+}
 - (void)startUpdate {
     if (canUpdateWeather) {
         [self updateWeatherSun];
@@ -155,144 +277,112 @@
 #pragma mark - viewDidLoad
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [self createCircleControl];
-    [self createWeatherView];
-    [self createAlarmView];
+    [self initProperty];
+    [self showCircleView];
+    [self showWeatherView];
+    [self showAlarmAddView];
+    [self showAlarmTV];
+    [self showAlarmSettingView];
 }
-- (void)createCircleControl {
-    if ([[SVData sharedInstance].device isEqualToString:@"iphone"]) {
-        if ([SVData sharedInstance].width == 320) {
-            hourRadius = 15;
-            hourCircleLineWidth = 3;
-            hourHandleLineWidth = 3;
-            minuteRadius = 12;
-            minuteCircleLineWidth = 2;
-            minuteHandleLineWidth = 2;
-            secondRadius = 10;
-            secondCircleLineWidth = 1;
-            secondHandleLineWidth = 1;
-            
-        } else {
-            hourRadius = 25;
-            hourCircleLineWidth = 3;
-            hourHandleLineWidth = 3;
-            minuteRadius = 15;
-            minuteCircleLineWidth = 2;
-            minuteHandleLineWidth = 2;
-            secondRadius = 10;
-            secondCircleLineWidth = 1;
-            secondHandleLineWidth = 1;
-            
-        }
-        
-    } else if ([[SVData sharedInstance].device isEqualToString:@"ipad"]) {
-        hourRadius = 40;
-        hourCircleLineWidth = 8;
-        hourHandleLineWidth = 5;
-        minuteRadius = 30;
-        minuteCircleLineWidth = 5;
-        minuteHandleLineWidth = 3;
-        secondRadius = 20;
-        secondCircleLineWidth = 3;
-        secondHandleLineWidth = 2;
-    } else {
-        hourRadius = 25;
-        hourCircleLineWidth = 8;
-        hourHandleLineWidth = 5;
-        minuteRadius = 15;
-        minuteCircleLineWidth = 5;
-        minuteHandleLineWidth = 3;
-        secondRadius = 10;
-        secondCircleLineWidth = 3;
-        secondHandleLineWidth = 2;
-    }
-    
+- (void)showCircleView {
     NSLog(@"%@,%@,%@",@(hourRadius),@(hourCircleLineWidth),@(hourHandleLineWidth));
-    _hourControl = [[SVCircleControl alloc] initWithFrame:CGRectMake(0, 0, WIDTH(self.view)-10, WIDTH(self.view)-10)];
-    _hourControl.center = self.view.center;
+    _circleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, WIDTH(self.view), WIDTH(self.view))];
+    _circleView.center = self.view.center;
+    [self.view addSubview:_circleView];
+    
+    CGFloat hourX = 5;
+    CGFloat hourWidth = WIDTH(_circleView)-2*hourX;
+    _hourControl = [[SVCircleControl alloc] initWithFrame:CGRectMake(hourX, hourX, hourWidth, hourWidth)];
     _hourControl.backgroundColor = RGBB(0.1);
     [_hourControl setMaxvalue:24 andMinvalue:0 withStep:1];
     _hourControl.circleLineWidth = hourCircleLineWidth;
     _hourControl.handleLineWidth = hourHandleLineWidth;
     _hourControl.handleRadius = hourRadius;
     [_hourControl addTarget:self action:@selector(valueChanged:) forControlEvents:UIControlEventValueChanged];
-    [self.view addSubview:_hourControl];
+    [_circleView addSubview:_hourControl];
     
-    _minuteControl = [[SVCircleControl alloc] initWithFrame:CGRectMake(0, 0, WIDTH(_hourControl)-hourRadius*4-hourHandleLineWidth*2-5, WIDTH(_hourControl)-hourRadius*4-hourHandleLineWidth*2-5)];
+    CGFloat minuteX = hourX+hourRadius*2+hourHandleLineWidth+2;
+    CGFloat minuteWidth = WIDTH(_circleView)-2*minuteX;
+    
+    _minuteControl = [[SVCircleControl alloc] initWithFrame:CGRectMake(minuteX, minuteX, minuteWidth, minuteWidth)];
     _minuteControl.backgroundColor = RGBB(0.1);
-    _minuteControl.center = self.view.center;
     [_minuteControl setMaxvalue:60 andMinvalue:0 withStep:1];
     _minuteControl.circleLineWidth = minuteCircleLineWidth;
     _minuteControl.handleLineWidth = minuteHandleLineWidth;
     _minuteControl.handleRadius = minuteRadius;
     [_minuteControl addTarget:self action:@selector(valueChanged:) forControlEvents:UIControlEventValueChanged];
-    [self.view addSubview:_minuteControl];
+    [_circleView addSubview:_minuteControl];
     
-    _secondControl = [[SVCircleControl alloc] initWithFrame:CGRectMake(0, 0, WIDTH(_minuteControl)-minuteRadius*4-minuteHandleLineWidth*2-5, WIDTH(_minuteControl)-minuteRadius*4-minuteHandleLineWidth*2-5)];
+    CGFloat secondX = minuteX+minuteRadius*2+minuteHandleLineWidth+2;
+    CGFloat secondWidth = WIDTH(_circleView)-2*secondX;
+    
+    _secondControl = [[SVCircleControl alloc] initWithFrame:CGRectMake(secondX, secondX, secondWidth, secondWidth)];
     _secondControl.backgroundColor = RGBB(0.1);
-    _secondControl.center = self.view.center;
     [_secondControl setMaxvalue:60 andMinvalue:0 withStep:1];
     _secondControl.circleLineWidth = secondCircleLineWidth;
     _secondControl.handleLineWidth = secondHandleLineWidth;
     _secondControl.handleRadius = secondRadius;
     _secondControl.userInteractionEnabled = NO;
-    [self.view addSubview:_secondControl];
+    [_circleView addSubview:_secondControl];
     
-    _hourControl.foreColor = RGBA(160, 85, 32, 1);
-    _minuteControl.foreColor = RGBA(200, 85, 32, 1);
-    _secondControl.foreColor = RGBA(240, 85, 32, 1);
+    _hourControl.foreColor = ORANGE_1;
+    _minuteControl.foreColor = ORANGE_2;
+    _secondControl.foreColor = ORANGE_3;
     
     //    NSLog(@"%@,%@,%@",NSStringFromCGRect(_hourControl.frame),NSStringFromCGRect(_minuteControl.frame),NSStringFromCGRect(_secondControl.frame));
     alarmBase = WIDTH(_secondControl)/30;
 }
-- (void)createWeatherView {
-    _weatherIV = [[UIImageView alloc] init];
-    _weatherIV.bounds = CGRectMake(0, 0, alarmBase*12, alarmBase*12);
-    _weatherIV.center = self.view.center;
-    _weatherIV.layer.cornerRadius = HEIGHT(_weatherIV)/2;
+- (void)showWeatherView {
+    CGFloat weatherIVWidth = alarmBase*12;
+    CGFloat weatherIVX = (WIDTH(_circleView)-weatherIVWidth)/2;
+    _weatherIV = [[UIImageView alloc] initWithFrame: CGRectMake(weatherIVX, weatherIVX, weatherIVWidth, weatherIVWidth)];
+    _weatherIV.layer.cornerRadius = weatherIVWidth/2;
     _weatherIV.layer.masksToBounds = YES;
     _weatherIV.alpha = 0;
-    [self.view addSubview:_weatherIV];
+    [_circleView addSubview:_weatherIV];
     
-    _weatherLabel_refresh = [[UILabel alloc] init];
-    _weatherLabel_refresh.bounds = CGRectMake(0, 0, alarmBase*15, alarmBase*3);
-    CGFloat weatherLabelCenter_refresh = self.view.center.y - HEIGHT(_secondControl)/2 + (alarmBase*4+HEIGHT(_weatherLabel_refresh)/2);
-    _weatherLabel_refresh.center = CGPointMake(self.view.center.x, weatherLabelCenter_refresh);
+    CGFloat weatherLabel_refreshWidth = alarmBase*15;
+    CGFloat weatherLabel_refreshHeight = alarmBase*3;
+    CGFloat weatherLabel_refreshX = (WIDTH(_circleView)-weatherLabel_refreshWidth)/2;
+    CGFloat weatherLabel_refreshY = ORIGIN_Y(_secondControl)+alarmBase*4;
+    _weatherLabel_refresh = [[UILabel alloc] initWithFrame:CGRectMake(weatherLabel_refreshX, weatherLabel_refreshY, weatherLabel_refreshWidth, weatherLabel_refreshHeight)];
     _weatherLabel_refresh.textAlignment = NSTextAlignmentCenter;
-    _weatherLabel_refresh.textColor = RGBA(200, 85, 32, 1);
+    _weatherLabel_refresh.textColor = ORANGE_2;
     _weatherLabel_refresh.numberOfLines = 2;
     _weatherLabel_refresh.alpha = 0;
-    [self.view addSubview:_weatherLabel_refresh];
+    [_circleView addSubview:_weatherLabel_refresh];
     
-    _weatherLabel_now = [[UILabel alloc] init];
-    _weatherLabel_now.bounds = CGRectMake(0, 0, alarmBase*18, alarmBase*4);
-    CGFloat weatherLabelCenter_now = self.view.center.y + HEIGHT(_secondControl)/2 - (alarmBase*7+HEIGHT(_weatherLabel_now)/2);
-    _weatherLabel_now.center = CGPointMake(self.view.center.x, weatherLabelCenter_now);
+    CGFloat weatherLabel_nowWidth = alarmBase*18;
+    CGFloat weatherLabel_nowHeight = alarmBase*4;
+    CGFloat weatherLabel_nowX = (WIDTH(_circleView)-weatherLabel_nowWidth)/2;
+    CGFloat weatherLabel_nowY = FrameBelow(_secondControl)-alarmBase*11;
+    _weatherLabel_now = [[UILabel alloc] initWithFrame:CGRectMake(weatherLabel_nowX, weatherLabel_nowY, weatherLabel_nowWidth, weatherLabel_nowHeight)];
     _weatherLabel_now.textAlignment = NSTextAlignmentCenter;
-    _weatherLabel_now.textColor = RGBA(200, 85, 32, 1);
+    _weatherLabel_now.textColor = ORANGE_2;
     _weatherLabel_now.numberOfLines = 1;
     _weatherLabel_now.alpha = 0;
-    [self.view addSubview:_weatherLabel_now];
+    [_circleView addSubview:_weatherLabel_now];
     
-    
-    _weatherLabel_temper = [[UILabel alloc] init];
-    _weatherLabel_temper.bounds = CGRectMake(0, 0, alarmBase*16, alarmBase*3);
-    CGFloat weatherLabelCenter_temper = self.view.center.y + HEIGHT(_secondControl)/2 - (alarmBase*5+HEIGHT(_weatherLabel_temper)/2);
-    _weatherLabel_temper.center = CGPointMake(self.view.center.x, weatherLabelCenter_temper);
+    CGFloat weatherLabel_temperWidth = alarmBase*16;
+    CGFloat weatherLabel_temperHeight = alarmBase*3;
+    CGFloat weatherLabel_temperX = (WIDTH(_circleView)-weatherLabel_temperWidth)/2;
+    CGFloat weatherLabel_temperY = FrameBelow(_secondControl)-alarmBase*8;
+    _weatherLabel_temper = [[UILabel alloc] initWithFrame:CGRectMake(weatherLabel_temperX, weatherLabel_temperY, weatherLabel_temperWidth, weatherLabel_temperHeight)];
     _weatherLabel_temper.textAlignment = NSTextAlignmentCenter;
-    _weatherLabel_temper.textColor = RGBA(200, 85, 32, 1);
+    _weatherLabel_temper.textColor = ORANGE_2;
     _weatherLabel_temper.numberOfLines = 1;
     _weatherLabel_temper.alpha = 0;
-    [self.view addSubview:_weatherLabel_temper];
+    [_circleView addSubview:_weatherLabel_temper];
     
     [self updateWeatherInfo];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateWeatherInfo) name:@"updateWeather" object:nil];
 }
-- (void)createAlarmView {
+- (void)showAlarmAddView {
+    CGFloat alarmBtn_addWidth = alarmBase*12;
+    CGFloat alarmBtn_addX = (WIDTH(_circleView)-alarmBtn_addWidth)/2;
     _alarmBtn_add = [UIButton buttonWithType:UIButtonTypeCustom];
-    _alarmBtn_add.bounds = CGRectMake(0, 0, alarmBase*12, alarmBase*12);
-    _alarmBtn_add.center = self.view.center;
-    _alarmBtn_add.layer.cornerRadius = HEIGHT(_alarmBtn_add)/2;
+    _alarmBtn_add.frame = CGRectMake(alarmBtn_addX, alarmBtn_addX, alarmBtn_addWidth, alarmBtn_addWidth);
+    _alarmBtn_add.layer.cornerRadius = alarmBtn_addWidth/2;
     _alarmBtn_add.layer.masksToBounds = YES;
     NSString *alarmTitle_add = @"添加闹钟";
     [_alarmBtn_add setTitle:alarmTitle_add forState:UIControlStateNormal];
@@ -301,13 +391,14 @@
     [_alarmBtn_add addTarget:self action:@selector(addAlarmClick:) forControlEvents:UIControlEventTouchUpInside];
     _alarmBtn_add.alpha = 0;
     _alarmBtn_add.userInteractionEnabled = NO;
-    [self.view addSubview:_alarmBtn_add];
+    [_circleView addSubview:_alarmBtn_add];
     
+    CGFloat alarmBtn_cancelWidth = alarmBase*6;
+    CGFloat alarmBtn_cancelX = (WIDTH(_circleView)-alarmBtn_cancelWidth)/2;
+    CGFloat alarmBtn_cancelY = ORIGIN_Y(_secondControl)+alarmBase*1;
     _alarmBtn_cancel = [UIButton buttonWithType:UIButtonTypeCustom];
-    _alarmBtn_cancel.bounds = CGRectMake(0, 0, alarmBase*6, alarmBase*6);
-    CGFloat alarmCenterY_cancel = self.view.center.y - HEIGHT(_secondControl)/2 + (alarmBase*1+HEIGHT(_alarmBtn_cancel)/2);
-    _alarmBtn_cancel.center = CGPointMake(self.view.center.x, alarmCenterY_cancel);
-    _alarmBtn_cancel.layer.cornerRadius = HEIGHT(_alarmBtn_cancel)/2;
+    _alarmBtn_cancel.frame = CGRectMake(alarmBtn_cancelX, alarmBtn_cancelY, alarmBtn_cancelWidth, alarmBtn_cancelWidth);
+    _alarmBtn_cancel.layer.cornerRadius = alarmBtn_cancelWidth/2;
     _alarmBtn_cancel.layer.masksToBounds = YES;
     NSString *alarmTitle_cancel = @"取消";
     [_alarmBtn_cancel setTitle:alarmTitle_cancel forState:UIControlStateNormal];
@@ -316,9 +407,34 @@
     [_alarmBtn_cancel addTarget:self action:@selector(cancelAlarmClick) forControlEvents:UIControlEventTouchUpInside];
     _alarmBtn_cancel.alpha = 0;
     _alarmBtn_cancel.userInteractionEnabled = NO;
-    [self.view addSubview:_alarmBtn_cancel];
+    [_circleView addSubview:_alarmBtn_cancel];
 }
 
+- (void)showAlarmTV {
+    _alarmTV = [[UITableView alloc] init];
+    _alarmTV.transform = CGAffineTransformMakeRotation(-M_PI_2);
+    _alarmTV.frame =CGRectMake(0, -cellHeight, WIDTH(self.view), cellHeight);
+    NSLog(@"_alarmTV %@",NSStringFromCGRect(_alarmTV.frame));
+    _alarmTV.separatorStyle = UITableViewCellSeparatorStyleNone;
+    _alarmTV.delegate = self;
+    _alarmTV.dataSource = self;
+    _alarmTV.backgroundColor = RGBW(1);
+    [self.view addSubview:_alarmTV];
+}
+- (void)showAlarmSettingView {
+    _alarmSettingView = [[UIView alloc] initWithFrame:CGRectMake(0, HEIGHT(_alarmTV)+20, WIDTH(self.view), HEIGHT(self.view)-HEIGHT(_alarmTV)-20)];
+    _alarmSettingView.backgroundColor = RGBB(0.05);
+    _alarmSettingView.layer.borderColor = RGBO(1).CGColor;
+    _alarmSettingView.layer.borderWidth = 2;
+    _alarmSettingView.hidden = YES;
+    [self.view addSubview:_alarmSettingView];
+}
+- (void)alarmRefresh {
+    cellStatus = AlarmCellStatusNormal;
+    selectRow = 0;
+    _alarmArray = [SVData sharedInstance].alarmArray;
+    [_alarmTV reloadData];
+}
 #pragma mark - Actions
 - (void)valueChanged:(SVCircleControl *)control {
     needUpdate = NO;
@@ -408,12 +524,64 @@
     [self setWeatherViewHidden:NO];
     [self setAlarmViewHidden:YES];
 }
+- (void)deleteAlarmClick:(UIButton *)btn {
+    NSUInteger row = [objc_getAssociatedObject(btn, @"row") unsignedIntegerValue];
+    NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:[_alarmArray objectAtIndex:row]];
+    [SVAlarm deleteAlarmFromDic:dic];
+    _alarmArray = [SVData sharedInstance].alarmArray;
+    [_alarmTV reloadData];
+    
+}
+#pragma mark - Tableview
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return _alarmArray.count;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return cellWidth;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSString *cellId = @"AlarmTableViewCell";
+    NSMutableDictionary *dic = [_alarmArray objectAtIndex:indexPath.row];
+    
+    AlarmTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellId];
+    if (!cell) {
+        cell = [[AlarmTableViewCell alloc] initWithSize:CGSizeMake(cellWidth, cellHeight) style:UITableViewCellStyleDefault reuseIdentifier:cellId];
+    }
+    cell.contentView.transform = CGAffineTransformMakeRotation(M_PI_2);
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    [cell setHour:[[dic objectForKey:@"hour"] integerValue] andMinute:[[dic objectForKey:@"minute"] integerValue]];
+    if ([[dic objectForKey:@"status"] integerValue] == 0) {
+        
+    } else {
+        
+    }
+    objc_setAssociatedObject(cell.deleteBtn, @"row", @(indexPath.row), OBJC_ASSOCIATION_COPY_NONATOMIC);
+    [cell.deleteBtn addTarget:self action:@selector(deleteAlarmClick:) forControlEvents:UIControlEventTouchUpInside];
+    
+    if (selectRow == indexPath.row) {
+        UIColor *color = RGBRandom;
+        cell.backgroundColor = color;
+        _alarmSettingView.backgroundColor = [color colorWithAlphaComponent:0.05];
+    } else {
+        cell.backgroundColor = RGBW(1);
+    }
+    cell.cellStatus = cellStatus;
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (selectRow != indexPath.row) {
+        selectRow = indexPath.row;
+        [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        [tableView reloadData];
+    }
+}
 #pragma mark - Touch
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     [super touchesBegan:touches withEvent:event];
     UITouch *touch = [touches anyObject];
     CGPoint point = [touch locationInView:self.view];
-    //    NSLog(@"%@",NSStringFromCGPoint(point));
+//    NSLog(@"%@",NSStringFromCGPoint(point));
     //    NSLog(@"class %@",NSStringFromClass([touch.view class]));
     //    NSLog(@"class 2 %@",[self.view hitTest:point withEvent:event]);
 }

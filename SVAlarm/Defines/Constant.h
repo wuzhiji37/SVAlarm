@@ -22,11 +22,13 @@
 #define FrameBelow(a)               ((a).frame.size.height+((a).frame.origin.y))
 #define CGRectZeroBelow(a)          CGRectMake(0, FrameBelow(a), 0, 0)
 
+
 #define RGBW(a)                     [UIColor colorWithRed:255 green:255 blue:255 alpha:(a)]
 #define RGBB(a)                     [UIColor colorWithRed:0 green:0 blue:0 alpha:(a)]
 #define RGBO(x)                     [UIColor colorWithRed:(x)/255.0 green:(x)/255.0 blue:(x)/255.0 alpha:1]
 #define RGBA(r,g,b,a)               [UIColor colorWithRed:(r)/255.0 green:(g)/255.0 blue:(b)/255.0 alpha:(a)]
 #define RGB(r,g,b)                  RGBA((r),(g),(b),1)
+#define RGBRandom                   RGB((arc4random()%256),(arc4random()%256),(arc4random()%256))
 
 #define HSBA(h,s,b,a)               [UIColor colorWithHue:(h)/360.0 saturation:(s)/100.0 brightness:(b)/100.0 alpha:(a)]
 #define HSB(h,s,b)                  HSBA((h),(s),(b),1)
@@ -51,6 +53,9 @@ typedef enum {
     SVAlarmMode5    = 1<<5,
     SVAlarmMode6    = 1<<6,
 }SVAlarmMode;
-
+typedef enum {
+    AlarmCellStatusNormal = 0,
+    AlarmCellStatusEditing = 1
+} AlarmCellStatus;
 
 #endif

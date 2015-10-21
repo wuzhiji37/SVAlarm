@@ -8,7 +8,8 @@
 
 #import "MainTabController.h"
 #import "AlarmViewController.h"
-#import "AlarmListNavigationController.h"
+#import "TestViewController.h"
+#import "AlarmListViewController.h"
 @interface MainTabController ()
 
 @end
@@ -25,10 +26,13 @@
         AlarmViewController *alarmVC = [[AlarmViewController alloc] init];
         alarmVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"闹钟" image:IMAGE(@"") tag:0];
         
-        AlarmListNavigationController *alarmListNVC = [[AlarmListNavigationController alloc] init];
-        alarmListNVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"闹钟List" image:IMAGE(@"") tag:1];
+        TestViewController *testVC = [[TestViewController alloc] init];
+        testVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"test" image:IMAGE(@"") tag:1];
         
-        [self setViewControllers:@[alarmVC,alarmListNVC]];
+        AlarmListViewController *alarmListVC = [[AlarmListViewController alloc] init];
+        alarmListVC.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"闹钟List" image:IMAGE(@"") tag:2];
+        
+        [self setViewControllers:@[alarmVC,testVC,alarmListVC]];
     }
     return self;
 }

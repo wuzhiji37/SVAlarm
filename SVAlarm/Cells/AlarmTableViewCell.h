@@ -11,7 +11,8 @@
 @interface AlarmTableViewCell : UITableViewCell {
     UILabel         *_timeLabel;
 }
-@property (nonatomic, strong) UISwitch        *statusSwitch;
+@property (nonatomic, strong)       UIButton            *deleteBtn;
+@property (nonatomic, readwrite)    AlarmCellStatus     cellStatus;
 - (instancetype)initWithSize:(CGSize)size
                        style:(UITableViewCellStyle)style
              reuseIdentifier:(NSString *)cellId;

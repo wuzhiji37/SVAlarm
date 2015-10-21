@@ -131,17 +131,14 @@
     return YES;
 }
 - (void)clickHandleToPoint:(CGPoint)point{
-    NSLog(@"click");
     _angle = [self angleFromPoint:point];
     _value = [self valueFromAngle:_angle];
 
     [self setNeedsDisplay];
 }
 - (void)moveHandleToPoint:(CGPoint)point{
-    NSLog(@"move");
     _angle = [self angleFromPoint:point];
     _value = [self valueFromAngle:_angle];
-    NSLog(@"%@ %@",@(_angle),@(_value));
     [self setNeedsDisplay];
 }
 /*

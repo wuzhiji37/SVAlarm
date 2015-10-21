@@ -7,11 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
-
 @interface AlarmListViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
 {
-    UITableView *_alarmTV;
-    NSArray     *_alarmArray;
-    NSInteger   cellHeight;
+    UITableView         *_alarmTV;
+    UIView              *_alarmSettingView;
+    NSArray             *_alarmArray;
+    NSInteger           cellHeight;
+    NSInteger           cellWidth;
+    AlarmCellStatus     cellStatus;
+    NSUInteger          selectRow;
 }
 @end

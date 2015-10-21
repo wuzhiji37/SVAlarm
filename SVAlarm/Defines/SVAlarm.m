@@ -69,4 +69,17 @@
 + (void)changeAlarmFromDic:(NSMutableDictionary *)dic toDic:(NSMutableDictionary *)newdic {
     
 }
++ (void)deleteAlarmFromDic:(NSMutableDictionary *)dic {
+    NSMutableDictionary *tDic = [NSMutableDictionary dictionaryWithDictionary:dic];
+    for(UILocalNotification *noti in [[UIApplication sharedApplication] scheduledLocalNotifications])
+    {
+        NSLog(@"noti :%@",noti.userInfo);
+        NSLog(@"tDic :%@",tDic);
+        if ([[noti.userInfo objectForKey:@"ID"] isEqualToString:[tDic objectForKey:@"ID"]]) {
+            [[SVData sharedInstance] deleteAlarmInfo:tDic];
+            [[UIApplication sharedApplication] cancelLocalNotification:noti];
+            break;
+        }
+    }
+}
 @end
