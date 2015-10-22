@@ -91,9 +91,6 @@
                 NSInteger minutesB = [[dicB objectForKey:@"hour"] integerValue] * 60 + [[dicB objectForKey:@"minute"] integerValue];
                 
                 if (minutesA > minutesB) {
-                    NSLog(@"minutesA = %d,i=%d",minutesA,i);
-                    NSLog(@"minutesB = %d,j=%d",minutesB,j);
-                    
                     [tempArray exchangeObjectAtIndex:i withObjectAtIndex:j];
                 }
             }

@@ -42,6 +42,7 @@
     [self addRecognizers];
 }
 - (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
     cellStatus = AlarmCellStatusNormal;
     selectRow = 0;
     _alarmArray = [SVData sharedInstance].alarmArray;

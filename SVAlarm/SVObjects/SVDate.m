@@ -11,12 +11,9 @@
 @implementation SVDate
 + (NSDateComponents *)comp {
     NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
-    NSDate *now;
-    NSDateComponents *comps = [[NSDateComponents alloc] init];
     NSInteger unitFlags = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitWeekday |
     NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond | NSCalendarUnitNanosecond;
-    now=[NSDate date];
-    comps = [calendar components:unitFlags fromDate:now];
+    NSDateComponents *comps = [calendar components:unitFlags fromDate:[NSDate date]];
     return comps;
 }
 + (NSInteger)hour {

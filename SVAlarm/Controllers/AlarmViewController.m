@@ -581,7 +581,7 @@
     [super touchesBegan:touches withEvent:event];
     UITouch *touch = [touches anyObject];
     CGPoint point = [touch locationInView:self.view];
-//    NSLog(@"%@",NSStringFromCGPoint(point));
+    NSLog(@"%@",NSStringFromCGPoint(point));
     //    NSLog(@"class %@",NSStringFromClass([touch.view class]));
     //    NSLog(@"class 2 %@",[self.view hitTest:point withEvent:event]);
 }
