@@ -67,7 +67,7 @@
     }
 }
 + (void)changeAlarmFromDic:(NSMutableDictionary *)dic toDic:(NSMutableDictionary *)newdic {
-    
+    //aaaa
 }
 + (void)deleteAlarmFromDic:(NSMutableDictionary *)dic {
     NSMutableDictionary *tDic = [NSMutableDictionary dictionaryWithDictionary:dic];
