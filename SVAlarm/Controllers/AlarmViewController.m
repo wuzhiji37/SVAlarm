@@ -30,7 +30,6 @@
         self.automaticallyAdjustsScrollViewInsets = NO;
         self.view.backgroundColor = [self backcolorForMinute:[SVDate minutesOfToday]];
         [self addNotification];
-        [self addRecognizer];
         [self addTimer];
     }
     return self;
@@ -157,81 +156,7 @@
     _weatherLabel_temper.font = FONT([UIFont fontsizeWithSize:_weatherLabel_temper.frame.size andText:_weatherLabel_temper.text]);
     
 }
-#pragma mark - Gesture
-- (void)addRecognizer {
-    _swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeDown:)];
-    _swipeDown.direction = UISwipeGestureRecognizerDirectionDown;
-    _swipeDown.delegate = self;
-    [self.view addGestureRecognizer:_swipeDown];
-    
-    _longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressTV:)];
-    _longPress.minimumPressDuration = 1;
-    [_alarmTV addGestureRecognizer:_longPress];
-    
-    _tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapSettingView:)];
-    [_alarmSettingView addGestureRecognizer:_tap];
-    
-    _swipeUp = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeUp:)];
-    _swipeUp.direction = UISwipeGestureRecognizerDirectionUp;
-    [_alarmTV addGestureRecognizer:_swipeUp];
-    [_alarmSettingView addGestureRecognizer:_swipeUp];
-}
-- (void)swipeDown:(UISwipeGestureRecognizer *)gesture {
-    NSLog(@"%s",__FUNCTION__);
-    CGRect alarmTVFrame = _alarmTV.frame;
-    alarmTVFrame.origin.y = 20;
-    CGRect circleFrame = _circleView.frame;
-    circleFrame.origin.y = (HEIGHT(self.view)+cellHeight+20-circleLen)/2;
-    [UIView animateWithDuration:0.5
-                          delay:0
-                        options:UIViewAnimationOptionLayoutSubviews
-                     animations:^{
-                         _alarmTV.frame = alarmTVFrame;
-                         _circleView.frame = circleFrame;
-                     } completion:^(BOOL finished) {
-                         _alarmSettingView.hidden = NO;
-                         NSLog(@"OK");
-                     }];
-}
-- (void)tapSettingView:(UITapGestureRecognizer *)gesture {
-    NSLog(@"%s",__FUNCTION__);
-    cellStatus = AlarmCellStatusNormal;
-    [_alarmTV reloadData];
-}
-- (void)longPressTV:(UILongPressGestureRecognizer *)gesture {
-    NSLog(@"%s",__FUNCTION__);
-    cellStatus = AlarmCellStatusEditing;
-    [_alarmTV reloadData];
-}
-- (void)swipeUp:(UISwipeGestureRecognizer *)gesture {
-    CGRect alarmTVFrame = _alarmTV.frame;
-    alarmTVFrame.origin.y = -HEIGHT(_alarmTV);
-    CGRect circleFrame = _circleView.frame;
-    circleFrame.origin.y = (HEIGHT(self.view)-circleLen)/2;
-    [UIView animateWithDuration:0.5
-                          delay:0
-                        options:UIViewAnimationOptionLayoutSubviews
-                     animations:^{
-                         _alarmTV.frame = alarmTVFrame;
-                         _circleView.frame = circleFrame;
-                     } completion:^(BOOL finished) {
-                         _alarmSettingView.hidden = YES;
-                         NSLog(@"OK");
-                     }];
-}
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
-    if ([gestureRecognizer isEqual: _swipeDown]) {
-        CGPoint touchPoint = [touch locationInView:self.view];
-        double dis = distance(touchPoint, _circleView.center);
-        if (dis  < HEIGHT(_hourControl)/2 && dis > HEIGHT(_secondControl)/2) {
-            return NO;
-        } else {
-            return YES;
-        }
-    } else {
-        return YES;
-    }
-}
+
 #pragma mark - Timer
 - (void)addTimer {
     _timer = [[NSTimer alloc] initWithFireDate:[NSDate date] interval:1 target:self selector:@selector(startUpdate) userInfo:nil repeats:YES];
@@ -294,6 +219,7 @@
     [self showAlarmAddView];
     [self showAlarmTV];
     [self showAlarmSettingView];
+    [self addRecognizer];
 }
 - (void)showCircleView {
     NSLog(@"%@,%@,%@",@(hourRadius),@(hourCircleLineWidth),@(hourHandleLineWidth));
@@ -433,15 +359,102 @@
     [self.view addSubview:_alarmTV];
 }
 - (void)showAlarmSettingView {
-    _alarmSettingView = [[UIView alloc] initWithFrame:CGRectMake(0, HEIGHT(_alarmTV)+20, WIDTH(self.view), HEIGHT(self.view)-HEIGHT(_alarmTV)-20)];
+    _alarmSettingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, WIDTH(self.view), HEIGHT(self.view))];
     _alarmSettingView.backgroundColor = RGBB(0.05);
     _alarmSettingView.layer.borderColor = RGBO(1).CGColor;
     _alarmSettingView.layer.borderWidth = 2;
     _alarmSettingView.hidden = YES;
-    [self.view addSubview:_alarmSettingView];
+    [self.view insertSubview:_alarmSettingView belowSubview:_alarmTV];
 }
 - (void)showAlarmCircleView {
 
+}
+#pragma mark - Gesture
+- (void)addRecognizer {
+    _swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeDown:)];
+    _swipeDown.direction = UISwipeGestureRecognizerDirectionDown;
+    _swipeDown.delegate = self;
+    [self.view addGestureRecognizer:_swipeDown];
+    
+    _longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressTV:)];
+    _longPress.minimumPressDuration = 1;
+    [_alarmTV addGestureRecognizer:_longPress];
+    
+    _tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapSettingView:)];
+    [_alarmSettingView addGestureRecognizer:_tap];
+    
+    _swipeUp = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeUp:)];
+    _swipeUp.direction = UISwipeGestureRecognizerDirectionUp;
+    _swipeDown.delegate = self;
+    [_alarmSettingView addGestureRecognizer:_swipeUp];
+}
+- (void)swipeDown:(UISwipeGestureRecognizer *)gesture {
+    NSLog(@"%s",__FUNCTION__);
+    CGRect alarmTVFrame = _alarmTV.frame;
+    alarmTVFrame.origin.y = 20;
+    CGRect circleFrame = _circleView.frame;
+    circleFrame.origin.y = (HEIGHT(self.view)+cellHeight+20-circleLen)/2;
+    [UIView animateWithDuration:0.5
+                          delay:0
+                        options:UIViewAnimationOptionLayoutSubviews
+                     animations:^{
+                         _alarmTV.frame = alarmTVFrame;
+                         _circleView.frame = circleFrame;
+                     } completion:^(BOOL finished) {
+                         _alarmSettingView.hidden = NO;
+                         NSLog(@"OK");
+                     }];
+}
+- (void)tapSettingView:(UITapGestureRecognizer *)gesture {
+    NSLog(@"%s",__FUNCTION__);
+    cellStatus = AlarmCellStatusNormal;
+    [_alarmTV reloadData];
+}
+- (void)longPressTV:(UILongPressGestureRecognizer *)gesture {
+    NSLog(@"%s",__FUNCTION__);
+    cellStatus = AlarmCellStatusEditing;
+    [_alarmTV reloadData];
+}
+- (void)swipeUp:(UISwipeGestureRecognizer *)gesture {
+    CGRect alarmTVFrame = _alarmTV.frame;
+    alarmTVFrame.origin.y = -HEIGHT(_alarmTV);
+    CGRect circleFrame = _circleView.frame;
+    circleFrame.origin.y = (HEIGHT(self.view)-circleLen)/2;
+    [UIView animateWithDuration:0.5
+                          delay:0
+                        options:UIViewAnimationOptionLayoutSubviews
+                     animations:^{
+                         _alarmTV.frame = alarmTVFrame;
+                         _circleView.frame = circleFrame;
+                     } completion:^(BOOL finished) {
+                         _alarmSettingView.hidden = YES;
+                         NSLog(@"OK");
+                     }];
+}
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+    NSLog(@"touch = %@",[touch.view class]);
+    if ([gestureRecognizer isEqual: _swipeDown]) {
+        CGPoint touchPoint = [touch locationInView:self.view];
+        double dis = distance(touchPoint, _circleView.center);
+        if (dis  < HEIGHT(_hourControl)/2 && dis > HEIGHT(_secondControl)/2) {
+            return NO;
+        } else {
+            return YES;
+        }
+    } else {
+        return YES;
+    }
+}
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    
+    NSLog(@"1 = %@",[otherGestureRecognizer.view class]);
+    if ([otherGestureRecognizer.view isKindOfClass:[UITableView class]]) {
+        NSLog(@"2 = %@",[otherGestureRecognizer.view class]);
+        return YES;
+    } else {
+        NSLog(@"3 = %@",[otherGestureRecognizer.view class]);
+        return NO;
+    }
 }
 #pragma mark - Actions
 - (void)valueChanged:(SVCircleControl *)control {

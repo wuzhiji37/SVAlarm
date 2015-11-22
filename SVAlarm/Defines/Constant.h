@@ -54,6 +54,11 @@ typedef enum {
     SVAlarmMode6    = 1<<6,
 }SVAlarmMode;
 typedef enum {
+    AlarmStatusNormal = 0,
+    AlarmStatusAdd = 1,
+    AlarmStatusSet = 2
+} AlarmStatus;
+typedef enum {
     AlarmCellStatusNormal = 0,
     AlarmCellStatusEditing = 1
 } AlarmCellStatus;
