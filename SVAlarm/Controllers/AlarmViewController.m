@@ -40,6 +40,7 @@
     canUpdateWeather = NO;
     isDay = YES;
     _alarmArray = [SVData sharedInstance].alarmArray;
+    circleState = SVCircleStateNormal;
     if ([[SVData sharedInstance].device isEqualToString:@"iphone"]) {
         if ([SVData sharedInstance].width == 320) {
             hourRadius = 15;
@@ -91,6 +92,7 @@
         cellHeight = 80;
         cellWidth = 80;
     }
+    circleLen = MIN(WIDTH(self.view), HEIGHT(self.view)-cellHeight-20);
 }
 #pragma mark - Notification
 - (void)addNotification {
@@ -176,13 +178,16 @@
 }
 - (void)swipeDown:(UISwipeGestureRecognizer *)gesture {
     NSLog(@"%s",__FUNCTION__);
-    CGRect frame = _alarmTV.frame;
-    frame.origin.y = 20;
+    CGRect alarmTVFrame = _alarmTV.frame;
+    alarmTVFrame.origin.y = 20;
+    CGRect circleFrame = _circleView.frame;
+    circleFrame.origin.y = (HEIGHT(self.view)+cellHeight+20-circleLen)/2;
     [UIView animateWithDuration:0.5
                           delay:0
                         options:UIViewAnimationOptionLayoutSubviews
                      animations:^{
-                         _alarmTV.frame = frame;
+                         _alarmTV.frame = alarmTVFrame;
+                         _circleView.frame = circleFrame;
                      } completion:^(BOOL finished) {
                          _alarmSettingView.hidden = NO;
                          NSLog(@"OK");
@@ -199,13 +204,16 @@
     [_alarmTV reloadData];
 }
 - (void)swipeUp:(UISwipeGestureRecognizer *)gesture {
-    CGRect frame = _alarmTV.frame;
-    frame.origin.y = -HEIGHT(_alarmTV);
+    CGRect alarmTVFrame = _alarmTV.frame;
+    alarmTVFrame.origin.y = -HEIGHT(_alarmTV);
+    CGRect circleFrame = _circleView.frame;
+    circleFrame.origin.y = (HEIGHT(self.view)-circleLen)/2;
     [UIView animateWithDuration:0.5
                           delay:0
                         options:UIViewAnimationOptionLayoutSubviews
                      animations:^{
-                         _alarmTV.frame = frame;
+                         _alarmTV.frame = alarmTVFrame;
+                         _circleView.frame = circleFrame;
                      } completion:^(BOOL finished) {
                          _alarmSettingView.hidden = YES;
                          NSLog(@"OK");
@@ -214,12 +222,15 @@
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
     if ([gestureRecognizer isEqual: _swipeDown]) {
         CGPoint touchPoint = [touch locationInView:self.view];
-        if (distance(touchPoint, _circleView.center)  < _hourControl.circleRadius) {
+        double dis = distance(touchPoint, _circleView.center);
+        if (dis  < HEIGHT(_hourControl)/2 && dis > HEIGHT(_secondControl)/2) {
             return NO;
+        } else {
+            return YES;
         }
+    } else {
         return YES;
     }
-    return YES;
 }
 #pragma mark - Timer
 - (void)addTimer {
@@ -286,7 +297,7 @@
 }
 - (void)showCircleView {
     NSLog(@"%@,%@,%@",@(hourRadius),@(hourCircleLineWidth),@(hourHandleLineWidth));
-    _circleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, WIDTH(self.view), WIDTH(self.view))];
+    _circleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, circleLen, circleLen)];
     _circleView.center = self.view.center;
     [self.view addSubview:_circleView];
     
@@ -429,11 +440,8 @@
     _alarmSettingView.hidden = YES;
     [self.view addSubview:_alarmSettingView];
 }
-- (void)alarmRefresh {
-    cellStatus = AlarmCellStatusNormal;
-    selectRow = 0;
-    _alarmArray = [SVData sharedInstance].alarmArray;
-    [_alarmTV reloadData];
+- (void)showAlarmCircleView {
+
 }
 #pragma mark - Actions
 - (void)valueChanged:(SVCircleControl *)control {
@@ -531,6 +539,12 @@
     _alarmArray = [SVData sharedInstance].alarmArray;
     [_alarmTV reloadData];
     
+}
+- (void)alarmRefresh {
+    cellStatus = AlarmCellStatusNormal;
+    selectRow = 0;
+    _alarmArray = [SVData sharedInstance].alarmArray;
+    [_alarmTV reloadData];
 }
 #pragma mark - Tableview
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {

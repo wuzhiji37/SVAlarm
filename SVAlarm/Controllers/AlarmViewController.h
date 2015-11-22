@@ -7,7 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
-
+typedef enum {
+    SVCircleStateNormal = 0,
+    SVCircleStateSetting = 1
+} SVCircleState;
 @interface AlarmViewController : UIViewController
 <UIGestureRecognizerDelegate,
 UITableViewDelegate,
@@ -22,10 +25,13 @@ UITableViewDataSource>
     BOOL                        canUpdateWeather;
     BOOL                        isDay;
     
+    CGFloat                     circleLen;
     UIView                      *_circleView;
     SVCircleControl             *_hourControl;
     SVCircleControl             *_minuteControl;
     SVCircleControl             *_secondControl;
+    SVCircleControl             *_alarmHourControl;
+    SVCircleControl             *_alarmMinuteControl;
     
     CGFloat                     hourRadius;
     CGFloat                     minuteRadius;
@@ -57,5 +63,7 @@ UITableViewDataSource>
     NSInteger                   cellWidth;
     AlarmCellStatus             cellStatus;
     NSUInteger                  selectRow;
+    
+    SVCircleState               circleState;
 }
 @end
