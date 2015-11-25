@@ -79,8 +79,10 @@
     [_alarmTV reloadData];
 }
 - (void)longPressTV:(UILongPressGestureRecognizer *)gesture {
-    cellStatus = AlarmCellStatusEditing;
-    [_alarmTV reloadData];
+    if (gesture.state == UIGestureRecognizerStateBegan) {
+        cellStatus = AlarmCellStatusEditing;
+        [_alarmTV reloadData];
+    }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {

@@ -65,5 +65,6 @@ UITableViewDataSource>
     NSUInteger                  selectRow;
     
     SVCircleState               circleState;
+    AlarmStatus                 alarmStatus;
 }
 @end

@@ -9,14 +9,14 @@
 /* Begin PBXBuildFile section */
 		77C5BDBD0FC811452A341B1C /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E5F07079646EEB174D51F2D /* libPods.a */; };
 		E317E6B01BC6680400CDD3DB /* SVCircleControl.m in Sources */ = {isa = PBXBuildFile; fileRef = E317E6AF1BC6680400CDD3DB /* SVCircleControl.m */; };
-		E326694D1BD0A1F80037BCE8 /* NSString+SVString.m in Sources */ = {isa = PBXBuildFile; fileRef = E326694C1BD0A1F80037BCE8 /* NSString+SVString.m */; settings = {ASSET_TAGS = (); }; };
+		E326694D1BD0A1F80037BCE8 /* NSString+SVString.m in Sources */ = {isa = PBXBuildFile; fileRef = E326694C1BD0A1F80037BCE8 /* NSString+SVString.m */; };
 		E33097D41BCE5A190091AEC8 /* AlarmListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E33097D31BCE5A190091AEC8 /* AlarmListViewController.m */; };
-		E330BD3C1BD781BB0035B4EA /* TestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E330BD3B1BD781BB0035B4EA /* TestViewController.m */; settings = {ASSET_TAGS = (); }; };
-		E35829081BD48C5B00BC7E93 /* AlarmTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = E35829071BD48C5B00BC7E93 /* AlarmTableViewCell.m */; settings = {ASSET_TAGS = (); }; };
-		E35829111BD4C9A200BC7E93 /* SVAlarm.m in Sources */ = {isa = PBXBuildFile; fileRef = E35829101BD4C9A200BC7E93 /* SVAlarm.m */; settings = {ASSET_TAGS = (); }; };
+		E330BD3C1BD781BB0035B4EA /* TestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E330BD3B1BD781BB0035B4EA /* TestViewController.m */; };
+		E35829081BD48C5B00BC7E93 /* AlarmTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = E35829071BD48C5B00BC7E93 /* AlarmTableViewCell.m */; };
+		E35829111BD4C9A200BC7E93 /* SVAlarm.m in Sources */ = {isa = PBXBuildFile; fileRef = E35829101BD4C9A200BC7E93 /* SVAlarm.m */; };
 		E359B1451BC8FA7C00F57402 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E359B1441BC8FA7C00F57402 /* CoreLocation.framework */; };
 		E359B14C1BC9093900F57402 /* SVNetwork.m in Sources */ = {isa = PBXBuildFile; fileRef = E359B14B1BC9093900F57402 /* SVNetwork.m */; };
-		E359E4DD1BD73E9F00E87789 /* SVCalculate.m in Sources */ = {isa = PBXBuildFile; fileRef = E359E4DB1BD73E9F00E87789 /* SVCalculate.m */; settings = {ASSET_TAGS = (); }; };
+		E359E4DD1BD73E9F00E87789 /* SVCalculate.m in Sources */ = {isa = PBXBuildFile; fileRef = E359E4DB1BD73E9F00E87789 /* SVCalculate.m */; };
 		E3765E3F1BCB5DF000F3F1FF /* SVDate.m in Sources */ = {isa = PBXBuildFile; fileRef = E3765E3E1BCB5DF000F3F1FF /* SVDate.m */; };
 		E39C164F1BB9148400EB4510 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E39C164E1BB9148400EB4510 /* main.m */; };
 		E39C16521BB9148400EB4510 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E39C16511BB9148400EB4510 /* AppDelegate.m */; };
@@ -24,8 +24,8 @@
 		E39C165D1BB9148400EB4510 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = E39C165B1BB9148400EB4510 /* LaunchScreen.xib */; };
 		E3BDC2591BC64213009ABABA /* SVData.m in Sources */ = {isa = PBXBuildFile; fileRef = E3BDC2581BC64213009ABABA /* SVData.m */; };
 		E3BF5EBA1BCF40C8006CF14B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3BF5EB91BCF40C8006CF14B /* UIKit.framework */; };
-		E3BF5EBF1BCF9DB0006CF14B /* UIFont+SVFont.m in Sources */ = {isa = PBXBuildFile; fileRef = E3BF5EBE1BCF9DB0006CF14B /* UIFont+SVFont.m */; settings = {ASSET_TAGS = (); }; };
-		E3BF5EC21BCFA7D8006CF14B /* AlarmSettingController.m in Sources */ = {isa = PBXBuildFile; fileRef = E3BF5EC11BCFA7D8006CF14B /* AlarmSettingController.m */; settings = {ASSET_TAGS = (); }; };
+		E3BF5EBF1BCF9DB0006CF14B /* UIFont+SVFont.m in Sources */ = {isa = PBXBuildFile; fileRef = E3BF5EBE1BCF9DB0006CF14B /* UIFont+SVFont.m */; };
+		E3BF5EC21BCFA7D8006CF14B /* AlarmSettingController.m in Sources */ = {isa = PBXBuildFile; fileRef = E3BF5EC11BCFA7D8006CF14B /* AlarmSettingController.m */; };
 		E3C844B11BC609F2005AA949 /* MainTabController.m in Sources */ = {isa = PBXBuildFile; fileRef = E3C844B01BC609F2005AA949 /* MainTabController.m */; };
 		E3DB97821BC618D90029E72A /* AlarmViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E3DB97801BC618D90029E72A /* AlarmViewController.m */; };
 /* End PBXBuildFile section */

@@ -40,6 +40,7 @@
     isDay = YES;
     _alarmArray = [SVData sharedInstance].alarmArray;
     circleState = SVCircleStateNormal;
+    alarmStatus = AlarmStatusNormal;
     if ([[SVData sharedInstance].device isEqualToString:@"iphone"]) {
         if ([SVData sharedInstance].width == 320) {
             hourRadius = 15;
@@ -91,7 +92,7 @@
         cellHeight = 80;
         cellWidth = 80;
     }
-    circleLen = MIN(WIDTH(self.view), HEIGHT(self.view)-cellHeight-20);
+    circleLen = MIN(WIDTH(self.view)-40, HEIGHT(self.view)-cellHeight-60);
 }
 #pragma mark - Notification
 - (void)addNotification {
@@ -359,19 +360,17 @@
     [self.view addSubview:_alarmTV];
 }
 - (void)showAlarmSettingView {
-    _alarmSettingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, WIDTH(self.view), HEIGHT(self.view))];
+    _alarmSettingView = [[UIView alloc] initWithFrame:CGRectMake(0, HEIGHT(_alarmTV)+20, WIDTH(self.view), HEIGHT(self.view)-HEIGHT(_alarmTV)-20)];
     _alarmSettingView.backgroundColor = RGBB(0.05);
     _alarmSettingView.layer.borderColor = RGBO(1).CGColor;
     _alarmSettingView.layer.borderWidth = 2;
     _alarmSettingView.hidden = YES;
-    [self.view insertSubview:_alarmSettingView belowSubview:_alarmTV];
+    [self.view insertSubview:_alarmSettingView belowSubview:_circleView];
 }
-- (void)showAlarmCircleView {
 
-}
 #pragma mark - Gesture
 - (void)addRecognizer {
-    _swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeDown:)];
+    _swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeFrom:)];
     _swipeDown.direction = UISwipeGestureRecognizerDirectionDown;
     _swipeDown.delegate = self;
     [self.view addGestureRecognizer:_swipeDown];
@@ -381,87 +380,127 @@
     [_alarmTV addGestureRecognizer:_longPress];
     
     _tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapSettingView:)];
-    [_alarmSettingView addGestureRecognizer:_tap];
+    [self.view addGestureRecognizer:_tap];
     
-    _swipeUp = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeUp:)];
+    _swipeUp = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeFrom:)];
     _swipeUp.direction = UISwipeGestureRecognizerDirectionUp;
     _swipeDown.delegate = self;
-    [_alarmSettingView addGestureRecognizer:_swipeUp];
+    [self.view addGestureRecognizer:_swipeUp];
+    
+    [_swipeDown requireGestureRecognizerToFail:_swipeUp];
+    [_swipeUp requireGestureRecognizerToFail:_tap];
 }
-- (void)swipeDown:(UISwipeGestureRecognizer *)gesture {
-    NSLog(@"%s",__FUNCTION__);
-    CGRect alarmTVFrame = _alarmTV.frame;
-    alarmTVFrame.origin.y = 20;
-    CGRect circleFrame = _circleView.frame;
-    circleFrame.origin.y = (HEIGHT(self.view)+cellHeight+20-circleLen)/2;
-    [UIView animateWithDuration:0.5
-                          delay:0
-                        options:UIViewAnimationOptionLayoutSubviews
-                     animations:^{
-                         _alarmTV.frame = alarmTVFrame;
-                         _circleView.frame = circleFrame;
-                     } completion:^(BOOL finished) {
-                         _alarmSettingView.hidden = NO;
-                         NSLog(@"OK");
-                     }];
+- (void)swipeFrom:(UISwipeGestureRecognizer *)gesture {
+    if (gesture.direction == UISwipeGestureRecognizerDirectionDown) {
+        [self changeAlarmState:AlarmStatusSet];
+    } else {
+        [self changeAlarmState:AlarmStatusNormal];
+    }
+    
 }
 - (void)tapSettingView:(UITapGestureRecognizer *)gesture {
-    NSLog(@"%s",__FUNCTION__);
     cellStatus = AlarmCellStatusNormal;
+    _alarmArray = [SVData sharedInstance].alarmArray;
     [_alarmTV reloadData];
 }
 - (void)longPressTV:(UILongPressGestureRecognizer *)gesture {
-    NSLog(@"%s",__FUNCTION__);
-    cellStatus = AlarmCellStatusEditing;
-    [_alarmTV reloadData];
+    if (gesture.state == UIGestureRecognizerStateBegan) {
+        cellStatus = AlarmCellStatusEditing;
+        _alarmArray = [SVData sharedInstance].alarmArray;
+        [_alarmTV reloadData];
+    }
 }
-- (void)swipeUp:(UISwipeGestureRecognizer *)gesture {
-    CGRect alarmTVFrame = _alarmTV.frame;
-    alarmTVFrame.origin.y = -HEIGHT(_alarmTV);
-    CGRect circleFrame = _circleView.frame;
-    circleFrame.origin.y = (HEIGHT(self.view)-circleLen)/2;
-    [UIView animateWithDuration:0.5
-                          delay:0
-                        options:UIViewAnimationOptionLayoutSubviews
-                     animations:^{
-                         _alarmTV.frame = alarmTVFrame;
-                         _circleView.frame = circleFrame;
-                     } completion:^(BOOL finished) {
-                         _alarmSettingView.hidden = YES;
-                         NSLog(@"OK");
-                     }];
-}
+
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
-    NSLog(@"touch = %@",[touch.view class]);
-    if ([gestureRecognizer isEqual: _swipeDown]) {
-        CGPoint touchPoint = [touch locationInView:self.view];
-        double dis = distance(touchPoint, _circleView.center);
-        if (dis  < HEIGHT(_hourControl)/2 && dis > HEIGHT(_secondControl)/2) {
-            return NO;
-        } else {
-            return YES;
-        }
+    CGPoint point = [touch locationInView:self.view];
+    double dis = distance(point, _circleView.center);
+    NSLog(@"dis = %@",@(dis));
+    if (dis  < HEIGHT(_hourControl)/2 && dis > HEIGHT(_secondControl)/2) {
+        
+        return NO;
     } else {
+        NSLog(@"touchPoint = %@",NSStringFromCGPoint(point));
+        NSLog(@"_circleView.center = %@",NSStringFromCGPoint(_circleView.center));
         return YES;
     }
 }
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
-    
-    NSLog(@"1 = %@",[otherGestureRecognizer.view class]);
-    if ([otherGestureRecognizer.view isKindOfClass:[UITableView class]]) {
-        NSLog(@"2 = %@",[otherGestureRecognizer.view class]);
-        return YES;
-    } else {
-        NSLog(@"3 = %@",[otherGestureRecognizer.view class]);
-        return NO;
+- (void)changeAlarmState:(AlarmStatus)status {
+    alarmStatus = status;
+    switch (status) {
+        case AlarmStatusNormal:
+        {
+            needUpdate = YES;
+            [self setSecondControlHidden:NO];
+            [self setWeatherViewHidden:NO];
+            [self setAlarmViewHidden:YES];
+            
+            CGRect alarmTVFrame = _alarmTV.frame;
+            alarmTVFrame.origin.y = -HEIGHT(_alarmTV);
+            CGRect circleFrame = _circleView.frame;
+            circleFrame.origin.y = (HEIGHT(self.view)-circleLen)/2;
+            [UIView animateWithDuration:0.5
+                                  delay:0
+                                options:UIViewAnimationOptionLayoutSubviews
+                             animations:^{
+                                 _alarmTV.frame = alarmTVFrame;
+                                 _circleView.frame = circleFrame;
+                             } completion:^(BOOL finished) {
+                                 _alarmSettingView.hidden = YES;
+                                 
+                             }];
+        }
+            break;
+        case AlarmStatusAdd:
+        {
+            needUpdate = NO;
+            [self setSecondControlHidden:YES];
+            [self setWeatherViewHidden:YES];
+            [self setAlarmViewHidden:NO];
+        }
+            break;
+        case AlarmStatusSet:
+        {
+            
+            CGRect alarmTVFrame = _alarmTV.frame;
+            alarmTVFrame.origin.y = 20;
+            CGRect circleFrame = _circleView.frame;
+            circleFrame.origin.y = (HEIGHT(self.view)+cellHeight+20-circleLen)/2;
+            [UIView animateWithDuration:0.5
+                                  delay:0
+                                options:UIViewAnimationOptionLayoutSubviews
+                             animations:^{
+                                 _alarmTV.frame = alarmTVFrame;
+                                 _circleView.frame = circleFrame;
+                             } completion:^(BOOL finished) {
+                                 _alarmSettingView.hidden = NO;
+                                 _alarmArray = [SVData sharedInstance].alarmArray;
+                                 [_alarmTV reloadData];
+                                 
+                                 if (_alarmArray.count > 0) {
+                                     needUpdate = NO;
+                                     [self setSecondControlHidden:YES];
+                                     [self setWeatherViewHidden:YES];
+                                     [self setAlarmViewHidden:YES];
+                                 } else {
+                                     [self changeAlarmState:AlarmStatusNormal];
+                                 }
+                             }];
+
+        }
+            break;
+        default:
+            break;
     }
 }
 #pragma mark - Actions
 - (void)valueChanged:(SVCircleControl *)control {
-    needUpdate = NO;
-    [self setSecondControlHidden:YES];
-    [self setWeatherViewHidden:YES];
-    [self setAlarmViewHidden:NO];
+    NSLog(@"%s alarmStatus=%@",__FUNCTION__,@(alarmStatus));
+
+    if (alarmStatus == AlarmStatusNormal) {
+        [self changeAlarmState:AlarmStatusAdd];
+    } else if (alarmStatus == AlarmStatusSet) {
+        [self changeAlarmState:AlarmStatusChange];
+    }
 }
 - (void)setSecondControlHidden:(BOOL)hidden {
     if (hidden) {
@@ -506,7 +545,7 @@
         [UIView animateWithDuration:.5
                          animations:^{
                              _alarmBtn_add.alpha = 0;
-                             _alarmBtn_cancel.alpha =0;
+                             _alarmBtn_cancel.alpha = 0;
                          }];
     } else {
         [UIView animateWithDuration:.5
@@ -521,8 +560,6 @@
 }
 
 
-
-
 - (void)addAlarmClick:(UIButton *)btn {
     NSLog(@"add %@:%@",@(_hourControl.value),@(_minuteControl.value));
     NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithObject:[NSString stringWithFormat:@"%u",arc4random()] forKey:@"ID"];
@@ -533,17 +570,11 @@
     
     [SVAlarm addAlarmWithDic:dic isNew:YES];
     
-    needUpdate = YES;
-    [self setSecondControlHidden:NO];
-    [self setWeatherViewHidden:NO];
-    [self setAlarmViewHidden:YES];
+    [self changeAlarmState:AlarmStatusNormal];
 }
 
 - (void)cancelAlarmClick {
-    needUpdate = YES;
-    [self setSecondControlHidden:NO];
-    [self setWeatherViewHidden:NO];
-    [self setAlarmViewHidden:YES];
+    [self changeAlarmState:AlarmStatusNormal];
 }
 - (void)deleteAlarmClick:(UIButton *)btn {
     NSUInteger row = [objc_getAssociatedObject(btn, @"row") unsignedIntegerValue];
@@ -551,7 +582,9 @@
     [SVAlarm deleteAlarmFromDic:dic];
     _alarmArray = [SVData sharedInstance].alarmArray;
     [_alarmTV reloadData];
-    
+    if (_alarmArray.count == 0) {
+        [self changeAlarmState:AlarmStatusNormal];
+    }
 }
 - (void)alarmRefresh {
     cellStatus = AlarmCellStatusNormal;

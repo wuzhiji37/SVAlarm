@@ -44,19 +44,25 @@
 #define KEY_BAIDUAPI                @"2445ff7227559111a9867d432e52af0f"
 
 typedef enum {
-    SVAlarmModeOnce = 0,
-    SVAlarmMode0    = 1<<0,
-    SVAlarmMode1    = 1<<1,
-    SVAlarmMode2    = 1<<2,
-    SVAlarmMode3    = 1<<3,
-    SVAlarmMode4    = 1<<4,
-    SVAlarmMode5    = 1<<5,
-    SVAlarmMode6    = 1<<6,
-}SVAlarmMode;
+    AlarmRepeatMode0    = 1<<0,
+    AlarmRepeatMode1    = 1<<1,
+    AlarmRepeatMode2    = 1<<2,
+    AlarmRepeatMode3    = 1<<3,
+    AlarmRepeatMode4    = 1<<4,
+    AlarmRepeatMode5    = 1<<5,
+    AlarmRepeatMode6    = 1<<6,
+    
+    AlarmRepeatModeOnce = 0,
+    AlarmRepeatModeDay = 1<<7,
+    AlarmRepeatModeWeek = 2<<7,
+    AlarmRepeatModeMonth = 3<<7,
+    AlarmRepeatModeYear = 4<<7,
+}AlarmRepeatMode;
 typedef enum {
     AlarmStatusNormal = 0,
     AlarmStatusAdd = 1,
-    AlarmStatusSet = 2
+    AlarmStatusSet = 2,
+    AlarmStatusChange = 3
 } AlarmStatus;
 typedef enum {
     AlarmCellStatusNormal = 0,
