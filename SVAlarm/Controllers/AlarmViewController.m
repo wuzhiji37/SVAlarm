@@ -231,7 +231,6 @@
     CGFloat hourX = 5;
     CGFloat hourWidth = WIDTH(_circleView)-2*hourX;
     _hourControl = [[SVCircleControl alloc] initWithFrame:CGRectMake(hourX, hourX, hourWidth, hourWidth)];
-    _hourControl.backgroundColor = RGBB(0.1);
     [_hourControl setMaxvalue:24 andMinvalue:0 withStep:1];
     _hourControl.circleLineWidth = hourCircleLineWidth;
     _hourControl.handleLineWidth = hourHandleLineWidth;
@@ -243,7 +242,6 @@
     CGFloat minuteWidth = WIDTH(_circleView)-2*minuteX;
     
     _minuteControl = [[SVCircleControl alloc] initWithFrame:CGRectMake(minuteX, minuteX, minuteWidth, minuteWidth)];
-    _minuteControl.backgroundColor = RGBB(0.1);
     [_minuteControl setMaxvalue:60 andMinvalue:0 withStep:1];
     _minuteControl.circleLineWidth = minuteCircleLineWidth;
     _minuteControl.handleLineWidth = minuteHandleLineWidth;
@@ -255,7 +253,6 @@
     CGFloat secondWidth = WIDTH(_circleView)-2*secondX;
     
     _secondControl = [[SVCircleControl alloc] initWithFrame:CGRectMake(secondX, secondX, secondWidth, secondWidth)];
-    _secondControl.backgroundColor = RGBB(0.1);
     [_secondControl setMaxvalue:60 andMinvalue:0 withStep:1];
     _secondControl.circleLineWidth = secondCircleLineWidth;
     _secondControl.handleLineWidth = secondHandleLineWidth;
@@ -370,6 +367,10 @@
 
 #pragma mark - Gesture
 - (void)addRecognizer {
+    _tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapSettingView:)];
+    _tap.delegate = self;
+    [self.view addGestureRecognizer:_tap];
+    
     _swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeFrom:)];
     _swipeDown.direction = UISwipeGestureRecognizerDirectionDown;
     _swipeDown.delegate = self;
@@ -379,20 +380,17 @@
     _longPress.minimumPressDuration = 1;
     [_alarmTV addGestureRecognizer:_longPress];
     
-    _tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapSettingView:)];
-    [self.view addGestureRecognizer:_tap];
-    
     _swipeUp = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeFrom:)];
     _swipeUp.direction = UISwipeGestureRecognizerDirectionUp;
-    _swipeDown.delegate = self;
+    _swipeUp.delegate = self;
     [self.view addGestureRecognizer:_swipeUp];
     
-    [_swipeDown requireGestureRecognizerToFail:_swipeUp];
-    [_swipeUp requireGestureRecognizerToFail:_tap];
 }
 - (void)swipeFrom:(UISwipeGestureRecognizer *)gesture {
     if (gesture.direction == UISwipeGestureRecognizerDirectionDown) {
-        [self changeAlarmState:AlarmStatusSet];
+        if (alarmStatus != AlarmStatusSet) {
+            [self changeAlarmState:AlarmStatusSet];
+        }
     } else {
         [self changeAlarmState:AlarmStatusNormal];
     }
@@ -402,29 +400,49 @@
     cellStatus = AlarmCellStatusNormal;
     _alarmArray = [SVData sharedInstance].alarmArray;
     [_alarmTV reloadData];
+    [self selectRow:selectRow];
 }
 - (void)longPressTV:(UILongPressGestureRecognizer *)gesture {
-    if (gesture.state == UIGestureRecognizerStateBegan) {
+    if (gesture.state == UIGestureRecognizerStateBegan && cellStatus == AlarmCellStatusNormal) {
         cellStatus = AlarmCellStatusEditing;
         _alarmArray = [SVData sharedInstance].alarmArray;
         [_alarmTV reloadData];
     }
+    [self selectRow:selectRow];
 }
-
+- (void)selectRow:(NSUInteger)row {
+    NSIndexPath *indexPath = INDEX(0, row);
+    if (_alarmArray.count >= row) {
+        [_alarmTV.delegate tableView:_alarmTV willSelectRowAtIndexPath:indexPath];
+        [_alarmTV selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionMiddle];
+        [_alarmTV.delegate tableView:_alarmTV didSelectRowAtIndexPath:indexPath];
+    }
+}
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
     CGPoint point = [touch locationInView:self.view];
     double dis = distance(point, _circleView.center);
-    NSLog(@"dis = %@",@(dis));
+    NSLog(@"gestureRecognizer = %@",gestureRecognizer);
+    if (gestureRecognizer == _tap) {
+        NSLog(@"_tap");
+        if (point.y >= ORIGIN_Y(_alarmTV) && point.y <= FrameBelow(_alarmTV)) {
+            return NO;
+        }
+    } else if (gestureRecognizer == _swipeDown) {
+        NSLog(@"_swipeDown");
+    } else if (gestureRecognizer == _swipeUp) {
+        NSLog(@"_swipeUp");
+    } else {
+        NSLog(@"other");
+    }
     if (dis  < HEIGHT(_hourControl)/2 && dis > HEIGHT(_secondControl)/2) {
-        
         return NO;
     } else {
         NSLog(@"touchPoint = %@",NSStringFromCGPoint(point));
-        NSLog(@"_circleView.center = %@",NSStringFromCGPoint(_circleView.center));
         return YES;
     }
 }
 - (void)changeAlarmState:(AlarmStatus)status {
+    NSLog(@"%s %d",__FUNCTION__,status);
     alarmStatus = status;
     switch (status) {
         case AlarmStatusNormal:
@@ -481,6 +499,10 @@
                                      [self setSecondControlHidden:YES];
                                      [self setWeatherViewHidden:YES];
                                      [self setAlarmViewHidden:YES];
+                                     
+                                     [self alarmRefresh];
+                                     
+                                     
                                  } else {
                                      [self changeAlarmState:AlarmStatusNormal];
                                  }
@@ -591,6 +613,7 @@
     selectRow = 0;
     _alarmArray = [SVData sharedInstance].alarmArray;
     [_alarmTV reloadData];
+    [self selectRow:selectRow];
 }
 #pragma mark - Tableview
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -608,7 +631,7 @@
         cell = [[AlarmTableViewCell alloc] initWithSize:CGSizeMake(cellWidth, cellHeight) style:UITableViewCellStyleDefault reuseIdentifier:cellId];
     }
     cell.contentView.transform = CGAffineTransformMakeRotation(M_PI_2);
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+//    cell.selectionStyle = UITableViewCellSelectionStyleNone;
     [cell setHour:[[dic objectForKey:@"hour"] integerValue] andMinute:[[dic objectForKey:@"minute"] integerValue]];
     if ([[dic objectForKey:@"status"] integerValue] == 0) {
         
@@ -617,23 +640,14 @@
     }
     objc_setAssociatedObject(cell.deleteBtn, @"row", @(indexPath.row), OBJC_ASSOCIATION_COPY_NONATOMIC);
     [cell.deleteBtn addTarget:self action:@selector(deleteAlarmClick:) forControlEvents:UIControlEventTouchUpInside];
-    
-    if (selectRow == indexPath.row) {
-        UIColor *color = RGBRandom;
-        cell.backgroundColor = color;
-        _alarmSettingView.backgroundColor = [color colorWithAlphaComponent:0.05];
-    } else {
-        cell.backgroundColor = RGBW(1);
-    }
+    cell.backgroundColor = RGBW(1);
     cell.cellStatus = cellStatus;
     return cell;
 }
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+- (void)tableView:(UITableView *)tableView didHighlightRowAtIndexPath:(NSIndexPath *)indexPath {
     if (selectRow != indexPath.row) {
         selectRow = indexPath.row;
         [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
-        [tableView reloadData];
     }
 }
 #pragma mark - Touch

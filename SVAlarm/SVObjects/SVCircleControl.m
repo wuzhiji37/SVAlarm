@@ -12,7 +12,7 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.backgroundColor = RGBW(0);
+        self.backgroundColor = RGBB(0.1);
         
         _center = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2);
         self.layer.cornerRadius = self.bounds.size.height/2;
