@@ -11,6 +11,6 @@
 @interface SVAlarm : NSObject
 + (void)addAlarmWithDic:(NSMutableDictionary *)dic isNew:(BOOL)isNew;
 + (void)cancelAlarmFromDic:(NSMutableDictionary *)dic;
-+ (void)changeAlarmFromDic:(NSMutableDictionary *)dic toDic:(NSMutableDictionary *)newdic;
++ (void)changeAlarmFromDic:(NSMutableDictionary *)dic;
 + (void)deleteAlarmFromDic:(NSMutableDictionary *)dic;
 @end

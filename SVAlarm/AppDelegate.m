@@ -19,12 +19,14 @@
     // Override point for customization after application launch.
     application.applicationIconBadgeNumber = 0;
     
+//    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+//    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"alarmArray"];
+//    [[NSUserDefaults standardUserDefaults] synchronize];
+    
     [SVData sharedInstance];
     
-//    [[UIApplication sharedApplication] cancelAllLocalNotifications];
-    for(UILocalNotification *noti in [[UIApplication sharedApplication] scheduledLocalNotifications])
-    {
-        
+
+    for(UILocalNotification *noti in [SVData sharedInstance].notiArray) {
         NSLog(@"id = %@",[noti.userInfo objectForKey:@"ID"]);
     }
     
@@ -44,8 +46,7 @@
                                               selector:@selector(updateTime)
                                               userInfo:nil
                                                repeats:YES];
-    NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
-    [runLoop addTimer:timer forMode:NSDefaultRunLoopMode];
+    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
     
     if ([UIApplication instancesRespondToSelector:@selector(registerUserNotificationSettings:)])
     {

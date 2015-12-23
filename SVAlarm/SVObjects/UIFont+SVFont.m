@@ -16,7 +16,7 @@
         UIFont *font = FONT(fontsize);
         tSize = [text sizeWithAttributes:@{NSFontAttributeName:font}];
         fontsize-=0.5;
-    } while (tSize.height>=size.height || tSize.width+10>=size.width);
+    } while (tSize.height>=size.height || tSize.width>=size.width);
     return fontsize;
 }
 @end

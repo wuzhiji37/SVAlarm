@@ -53,16 +53,12 @@ typedef enum {
     AlarmRepeatMode6    = 1<<6,
     
     AlarmRepeatModeOnce = 0,
-    AlarmRepeatModeDay = 1<<7,
-    AlarmRepeatModeWeek = 2<<7,
-    AlarmRepeatModeMonth = 3<<7,
-    AlarmRepeatModeYear = 4<<7,
 }AlarmRepeatMode;
 typedef enum {
-    AlarmStatusNormal = 0,
-    AlarmStatusAdd = 1,
-    AlarmStatusSet = 2,
-    AlarmStatusChange = 3
+    AlarmStatusNormal   = 0,
+    AlarmStatusAdd      = 1,
+    AlarmStatusSet      = 2,
+    AlarmStatusChange   = 3
 } AlarmStatus;
 typedef enum {
     AlarmCellStatusNormal = 0,

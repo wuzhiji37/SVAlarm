@@ -30,8 +30,6 @@ UITableViewDataSource>
     SVCircleControl             *_hourControl;
     SVCircleControl             *_minuteControl;
     SVCircleControl             *_secondControl;
-    SVCircleControl             *_alarmHourControl;
-    SVCircleControl             *_alarmMinuteControl;
     
     CGFloat                     hourRadius;
     CGFloat                     minuteRadius;
@@ -52,12 +50,13 @@ UITableViewDataSource>
     UILabel                     *_weatherLabel_now;
     UILabel                     *_weatherLabel_temper;
     
-    
-    UIButton                    *_alarmBtn_add;
-    UIButton                    *_alarmBtn_cancel;
-    
-    UITableView                 *_alarmTV;
     UIView                      *_alarmSettingView;
+    UIButton                    *_alarmBtn_add;
+    
+    
+    
+
+    UITableView                 *_alarmTV;
     NSArray                     *_alarmArray;
     NSInteger                   cellHeight;
     NSInteger                   cellWidth;
@@ -66,5 +65,7 @@ UITableViewDataSource>
     
     SVCircleState               circleState;
     AlarmStatus                 alarmStatus;
+    
+    NSDictionary                *_selectedDic;
 }
 @end

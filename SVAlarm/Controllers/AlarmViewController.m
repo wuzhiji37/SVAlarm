@@ -217,9 +217,8 @@
     [self initProperty];
     [self showCircleView];
     [self showWeatherView];
-    [self showAlarmAddView];
-    [self showAlarmTV];
     [self showAlarmSettingView];
+    [self showAlarmTV];
     [self addRecognizer];
 }
 - (void)showCircleView {
@@ -264,7 +263,16 @@
     _minuteControl.foreColor = ORANGE_2;
     _secondControl.foreColor = ORANGE_3;
     
-    //    NSLog(@"%@,%@,%@",NSStringFromCGRect(_hourControl.frame),NSStringFromCGRect(_minuteControl.frame),NSStringFromCGRect(_secondControl.frame));
+    CGFloat settingX = secondX;
+    CGFloat settingWidth = WIDTH(_circleView)-2*settingX;
+    _alarmSettingView = [[UIView alloc] initWithFrame:CGRectMake(settingX, settingX, settingWidth, settingWidth)];
+    _alarmSettingView.backgroundColor = RGBW(0.2);
+    _alarmSettingView.layer.cornerRadius = HEIGHT(_alarmSettingView)/2;
+    _alarmSettingView.layer.masksToBounds = YES;
+    _alarmSettingView.alpha = 0;
+    [_circleView addSubview:_alarmSettingView];
+    
+    
     alarmBase = WIDTH(_secondControl)/30;
 }
 - (void)showWeatherView {
@@ -311,40 +319,48 @@
     
     [self updateWeatherInfo];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateWeatherInfo) name:@"updateWeather" object:nil];
+
 }
-- (void)showAlarmAddView {
+- (void)showAlarmSettingView {
     CGFloat alarmBtn_addWidth = alarmBase*12;
-    CGFloat alarmBtn_addX = (WIDTH(_circleView)-alarmBtn_addWidth)/2;
+    CGFloat alarmBtn_addX = (WIDTH(_alarmSettingView)-alarmBtn_addWidth)/2;
     _alarmBtn_add = [UIButton buttonWithType:UIButtonTypeCustom];
     _alarmBtn_add.frame = CGRectMake(alarmBtn_addX, alarmBtn_addX, alarmBtn_addWidth, alarmBtn_addWidth);
     _alarmBtn_add.layer.cornerRadius = alarmBtn_addWidth/2;
     _alarmBtn_add.layer.masksToBounds = YES;
     NSString *alarmTitle_add = @"添加闹钟";
     [_alarmBtn_add setTitle:alarmTitle_add forState:UIControlStateNormal];
-    _alarmBtn_add.titleLabel.font = FONT([UIFont fontsizeWithSize:_alarmBtn_add.frame.size andText:alarmTitle_add]);
-    [_alarmBtn_add setBackgroundColor:[UIColor redColor]];
+    _alarmBtn_add.titleLabel.font = FONT([UIFont fontsizeWithSize:_alarmBtn_add.frame.size andText:alarmTitle_add]/1.3);
+    _alarmBtn_add.backgroundColor = [UIColor redColor];
     [_alarmBtn_add addTarget:self action:@selector(addAlarmClick:) forControlEvents:UIControlEventTouchUpInside];
-    _alarmBtn_add.alpha = 0;
-    _alarmBtn_add.userInteractionEnabled = NO;
-    [_circleView addSubview:_alarmBtn_add];
-    
-    CGFloat alarmBtn_cancelWidth = alarmBase*6;
-    CGFloat alarmBtn_cancelX = (WIDTH(_circleView)-alarmBtn_cancelWidth)/2;
-    CGFloat alarmBtn_cancelY = ORIGIN_Y(_secondControl)+alarmBase*1;
-    _alarmBtn_cancel = [UIButton buttonWithType:UIButtonTypeCustom];
-    _alarmBtn_cancel.frame = CGRectMake(alarmBtn_cancelX, alarmBtn_cancelY, alarmBtn_cancelWidth, alarmBtn_cancelWidth);
-    _alarmBtn_cancel.layer.cornerRadius = alarmBtn_cancelWidth/2;
-    _alarmBtn_cancel.layer.masksToBounds = YES;
-    NSString *alarmTitle_cancel = @"取消";
-    [_alarmBtn_cancel setTitle:alarmTitle_cancel forState:UIControlStateNormal];
-    _alarmBtn_cancel.titleLabel.font = FONT([UIFont fontsizeWithSize:_alarmBtn_cancel.frame.size andText:alarmTitle_cancel]);
-    [_alarmBtn_cancel setBackgroundColor:[UIColor redColor]];
-    [_alarmBtn_cancel addTarget:self action:@selector(cancelAlarmClick) forControlEvents:UIControlEventTouchUpInside];
-    _alarmBtn_cancel.alpha = 0;
-    _alarmBtn_cancel.userInteractionEnabled = NO;
-    [_circleView addSubview:_alarmBtn_cancel];
+    [_alarmSettingView addSubview:_alarmBtn_add];
+    NSArray *btnTitleArray = @[@"周日",@"周一",@"周二",@"周三",@"周四",@"周五",@"周六",@"取消"];
+    for (int i = 0; i < 8; i++) {
+        UIButton *weekBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        CGFloat dis = _alarmBtn_add.center.y-secondRadius*2-alarmBase;
+        CGFloat width = alarmBase * 5;
+        weekBtn.bounds = CGRectMake(0, 0, width, width);
+        weekBtn.center = CGPointMake(WIDTH(_alarmSettingView)/2+dis*sin(M_PIx2/8*(i+5)), HEIGHT(_alarmSettingView)/2+dis*cos(M_PIx2/8*(i+5)));
+        [weekBtn setTitle:[btnTitleArray objectAtIndex:i] forState:UIControlStateNormal];
+        weekBtn.titleLabel.font = FONT([UIFont fontsizeWithSize:weekBtn.frame.size andText:[btnTitleArray objectAtIndex:i]]/1.3);
+        weekBtn.layer.cornerRadius = width/2;
+        weekBtn.layer.masksToBounds = YES;
+        weekBtn.tag = 1000+i;
+        [_alarmSettingView addSubview:weekBtn];
+        if (i == 7) {
+            weekBtn.backgroundColor = [UIColor redColor];
+            [weekBtn setTitleColor:RGBW(1) forState:UIControlStateNormal];
+            [weekBtn addTarget:self action:@selector(cancelAlarmClick) forControlEvents:UIControlEventTouchUpInside];
+        } else if (i < 7){
+            weekBtn.backgroundColor = RGBW(1);
+            [weekBtn setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+            [weekBtn setTitleColor:RGBW(1) forState:UIControlStateSelected];
+            [weekBtn addTarget:self action:@selector(weekClick:) forControlEvents:UIControlEventTouchUpInside];
+            weekBtn.layer.borderColor = RGB(255, 0, 0).CGColor;
+            weekBtn.layer.borderWidth = 2;
+        }
+    }
 }
-
 - (void)showAlarmTV {
     _alarmTV = [[UITableView alloc] init];
     _alarmTV.transform = CGAffineTransformMakeRotation(-M_PI_2);
@@ -353,16 +369,8 @@
     _alarmTV.separatorStyle = UITableViewCellSeparatorStyleNone;
     _alarmTV.delegate = self;
     _alarmTV.dataSource = self;
-    _alarmTV.backgroundColor = RGBW(1);
+    _alarmTV.backgroundColor = RGBW(0);
     [self.view addSubview:_alarmTV];
-}
-- (void)showAlarmSettingView {
-    _alarmSettingView = [[UIView alloc] initWithFrame:CGRectMake(0, HEIGHT(_alarmTV)+20, WIDTH(self.view), HEIGHT(self.view)-HEIGHT(_alarmTV)-20)];
-    _alarmSettingView.backgroundColor = RGBB(0.05);
-    _alarmSettingView.layer.borderColor = RGBO(1).CGColor;
-    _alarmSettingView.layer.borderWidth = 2;
-    _alarmSettingView.hidden = YES;
-    [self.view insertSubview:_alarmSettingView belowSubview:_circleView];
 }
 
 #pragma mark - Gesture
@@ -392,15 +400,19 @@
             [self changeAlarmState:AlarmStatusSet];
         }
     } else {
-        [self changeAlarmState:AlarmStatusNormal];
+        if (alarmStatus != AlarmStatusNormal) {
+            [self changeAlarmState:AlarmStatusNormal];
+        }
     }
     
 }
 - (void)tapSettingView:(UITapGestureRecognizer *)gesture {
-    cellStatus = AlarmCellStatusNormal;
-    _alarmArray = [SVData sharedInstance].alarmArray;
-    [_alarmTV reloadData];
-    [self selectRow:selectRow];
+    if (cellStatus == AlarmCellStatusEditing) {
+        cellStatus = AlarmCellStatusNormal;
+        _alarmArray = [SVData sharedInstance].alarmArray;
+        [_alarmTV reloadData];
+        [self selectRow:selectRow];
+    }
 }
 - (void)longPressTV:(UILongPressGestureRecognizer *)gesture {
     if (gesture.state == UIGestureRecognizerStateBegan && cellStatus == AlarmCellStatusNormal) {
@@ -412,7 +424,7 @@
 }
 - (void)selectRow:(NSUInteger)row {
     NSIndexPath *indexPath = INDEX(0, row);
-    if (_alarmArray.count >= row) {
+    if (_alarmArray.count > row) {
         [_alarmTV.delegate tableView:_alarmTV willSelectRowAtIndexPath:indexPath];
         [_alarmTV selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionMiddle];
         [_alarmTV.delegate tableView:_alarmTV didSelectRowAtIndexPath:indexPath];
@@ -450,8 +462,7 @@
             needUpdate = YES;
             [self setSecondControlHidden:NO];
             [self setWeatherViewHidden:NO];
-            [self setAlarmViewHidden:YES];
-            
+            [self setAlarmSettingViewHidden:YES];
             CGRect alarmTVFrame = _alarmTV.frame;
             alarmTVFrame.origin.y = -HEIGHT(_alarmTV);
             CGRect circleFrame = _circleView.frame;
@@ -463,7 +474,6 @@
                                  _alarmTV.frame = alarmTVFrame;
                                  _circleView.frame = circleFrame;
                              } completion:^(BOOL finished) {
-                                 _alarmSettingView.hidden = YES;
                                  
                              }];
         }
@@ -473,12 +483,11 @@
             needUpdate = NO;
             [self setSecondControlHidden:YES];
             [self setWeatherViewHidden:YES];
-            [self setAlarmViewHidden:NO];
+            [self setAlarmSettingViewHidden:NO];
         }
             break;
         case AlarmStatusSet:
         {
-            
             CGRect alarmTVFrame = _alarmTV.frame;
             alarmTVFrame.origin.y = 20;
             CGRect circleFrame = _circleView.frame;
@@ -490,24 +499,26 @@
                                  _alarmTV.frame = alarmTVFrame;
                                  _circleView.frame = circleFrame;
                              } completion:^(BOOL finished) {
-                                 _alarmSettingView.hidden = NO;
-                                 _alarmArray = [SVData sharedInstance].alarmArray;
-                                 [_alarmTV reloadData];
-                                 
                                  if (_alarmArray.count > 0) {
                                      needUpdate = NO;
                                      [self setSecondControlHidden:YES];
                                      [self setWeatherViewHidden:YES];
-                                     [self setAlarmViewHidden:YES];
+                                     [self setAlarmSettingViewHidden:YES];
                                      
                                      [self alarmRefresh];
-                                     
-                                     
                                  } else {
                                      [self changeAlarmState:AlarmStatusNormal];
                                  }
                              }];
 
+        }
+            break;
+        case AlarmStatusChange:
+        {
+            needUpdate = NO;
+            [self setSecondControlHidden:YES];
+            [self setWeatherViewHidden:YES];
+            [self setAlarmSettingViewHidden:YES];
         }
             break;
         default:
@@ -543,6 +554,8 @@
 }
 - (void)setWeatherViewHidden:(BOOL)hidden {
     if (hidden) {
+        if (_weatherIV.alpha == 1 || _weatherLabel_refresh.alpha == 1 ||
+            _weatherLabel_now.alpha == 1 || _weatherLabel_temper.alpha == 1) {
         [UIView animateWithDuration:.5
                          animations:^{
                              _weatherIV.alpha = 0;
@@ -550,7 +563,10 @@
                              _weatherLabel_now.alpha = 0;
                              _weatherLabel_temper.alpha = 0;
                          }];
+        }
     } else {
+        if (_weatherIV.alpha == 0 || _weatherLabel_refresh.alpha == 0 ||
+            _weatherLabel_now.alpha == 0 || _weatherLabel_temper.alpha == 0) {
         [UIView animateWithDuration:.5
                          animations:^{
                              _weatherIV.alpha = 1;
@@ -558,36 +574,41 @@
                              _weatherLabel_now.alpha = 1;
                              _weatherLabel_temper.alpha = 1;
                          }];
+        }
     }
 }
-- (void)setAlarmViewHidden:(BOOL)hidden {
+- (void)setAlarmSettingViewHidden:(BOOL)hidden {
+    NSLog(@"%s",__FUNCTION__);
     if (hidden) {
-        _alarmBtn_add.userInteractionEnabled = NO;
-        _alarmBtn_cancel.userInteractionEnabled = NO;
-        [UIView animateWithDuration:.5
-                         animations:^{
-                             _alarmBtn_add.alpha = 0;
-                             _alarmBtn_cancel.alpha = 0;
-                         }];
+        if (_alarmSettingView.alpha == 1) {
+            [UIView animateWithDuration:.5
+                             animations:^{
+                                 _alarmSettingView.alpha = 0;
+                             }];
+        }
     } else {
-        [UIView animateWithDuration:.5
-                         animations:^{
-                             _alarmBtn_add.alpha = 1;
-                             _alarmBtn_cancel.alpha = 1;
-                         } completion:^(BOOL finished) {
-                             _alarmBtn_add.userInteractionEnabled = YES;
-                             _alarmBtn_cancel.userInteractionEnabled = YES;
-                         }];
+        if (_alarmSettingView.alpha == 0) {
+            [UIView animateWithDuration:.5
+                             animations:^{
+                                 _alarmSettingView.alpha = 1;
+                             }];
+        }
     }
 }
-
 
 - (void)addAlarmClick:(UIButton *)btn {
     NSLog(@"add %@:%@",@(_hourControl.value),@(_minuteControl.value));
     NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithObject:[NSString stringWithFormat:@"%u",arc4random()] forKey:@"ID"];
     [dic setObject:@(_hourControl.value) forKey:@"hour"];
     [dic setObject:@(_minuteControl.value) forKey:@"minute"];
-    [dic setObject:@(1) forKey:@"repeat"];
+    AlarmRepeatMode repeatMode = 0;
+    for (int i=0; i<7; i++) {
+        BOOL selected = ((UIButton *)[_alarmSettingView viewWithTag:1000+i]).selected;
+        if (selected) {
+            repeatMode |= 1<<i;
+        }
+    }
+    [dic setObject:@(repeatMode) forKey:@"repeat"];
     [dic setObject:@"1" forKey:@"status"];
     
     [SVAlarm addAlarmWithDic:dic isNew:YES];
@@ -597,6 +618,14 @@
 
 - (void)cancelAlarmClick {
     [self changeAlarmState:AlarmStatusNormal];
+}
+- (void)weekClick:(UIButton *)btn {
+    btn.selected = !btn.selected;
+    if (btn.selected) {
+        btn.backgroundColor = [UIColor redColor];
+    } else {
+        btn.backgroundColor = RGBW(1);
+    }
 }
 - (void)deleteAlarmClick:(UIButton *)btn {
     NSUInteger row = [objc_getAssociatedObject(btn, @"row") unsignedIntegerValue];
@@ -634,17 +663,28 @@
 //    cell.selectionStyle = UITableViewCellSelectionStyleNone;
     [cell setHour:[[dic objectForKey:@"hour"] integerValue] andMinute:[[dic objectForKey:@"minute"] integerValue]];
     if ([[dic objectForKey:@"status"] integerValue] == 0) {
-        
+        cell.timeLabel.textColor = RGBB(0.6);
     } else {
-        
+        cell.timeLabel.textColor = RGBB(1);
     }
     objc_setAssociatedObject(cell.deleteBtn, @"row", @(indexPath.row), OBJC_ASSOCIATION_COPY_NONATOMIC);
     [cell.deleteBtn addTarget:self action:@selector(deleteAlarmClick:) forControlEvents:UIControlEventTouchUpInside];
-    cell.backgroundColor = RGBW(1);
+    cell.backgroundColor = RGBW(0);
     cell.cellStatus = cellStatus;
     return cell;
 }
+- (NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSLog(@"%s",__FUNCTION__);
+    return indexPath;
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSLog(@"%s",__FUNCTION__);
+    _selectedDic = [NSDictionary dictionaryWithDictionary:[_alarmArray objectAtIndex:indexPath.row]];
+    _hourControl.value = [[_selectedDic objectForKey:@"hour"] integerValue];
+    _minuteControl.value = [[_selectedDic objectForKey:@"minute"] integerValue];
+}
 - (void)tableView:(UITableView *)tableView didHighlightRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSLog(@"%s",__FUNCTION__);
     if (selectRow != indexPath.row) {
         selectRow = indexPath.row;
         [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:YES];

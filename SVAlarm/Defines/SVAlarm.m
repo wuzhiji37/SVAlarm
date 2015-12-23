@@ -11,6 +11,9 @@
 @implementation SVAlarm
 + (void)addAlarmWithDic:(NSMutableDictionary *)dic isNew:(BOOL)isNew {
     NSMutableDictionary *tDic = [NSMutableDictionary dictionaryWithDictionary:dic];
+    
+    
+    
     UILocalNotification *noti = [[UILocalNotification alloc] init];
     if (noti) {
         NSLog(@"dic = %@",tDic);
@@ -55,30 +58,29 @@
 + (void)cancelAlarmFromDic:(NSMutableDictionary *)dic {
     NSMutableDictionary *tDic = [NSMutableDictionary dictionaryWithDictionary:dic];
     [tDic setObject:@"0" forKey:@"status"];
-    for(UILocalNotification *noti in [[UIApplication sharedApplication] scheduledLocalNotifications])
-    {
+    [[SVData sharedInstance] changeAlarmInfo:tDic];
+    for(UILocalNotification *noti in [[UIApplication sharedApplication] scheduledLocalNotifications]) {
         NSLog(@"noti :%@",noti.userInfo);
         NSLog(@"tDic :%@",tDic);
         if ([[noti.userInfo objectForKey:@"ID"] isEqualToString:[tDic objectForKey:@"ID"]]) {
-            [[SVData sharedInstance] changeAlarmInfo:tDic];
             [[UIApplication sharedApplication] cancelLocalNotification:noti];
-            break;
         }
     }
 }
-+ (void)changeAlarmFromDic:(NSMutableDictionary *)dic toDic:(NSMutableDictionary *)newdic {
-    //aaaa
++ (void)changeAlarmFromDic:(NSMutableDictionary *)dic {
+    NSLog(@"%s %@",__FUNCTION__, dic);
+    NSMutableDictionary *tDic = [NSMutableDictionary dictionaryWithDictionary:dic];
+    [SVAlarm deleteAlarmFromDic:tDic];
+    [SVAlarm addAlarmWithDic:tDic isNew:YES];
 }
 + (void)deleteAlarmFromDic:(NSMutableDictionary *)dic {
     NSMutableDictionary *tDic = [NSMutableDictionary dictionaryWithDictionary:dic];
-    for(UILocalNotification *noti in [[UIApplication sharedApplication] scheduledLocalNotifications])
-    {
+    [[SVData sharedInstance] deleteAlarmInfo:tDic];
+    for(UILocalNotification *noti in [[UIApplication sharedApplication] scheduledLocalNotifications]) {
         NSLog(@"noti :%@",noti.userInfo);
         NSLog(@"tDic :%@",tDic);
         if ([[noti.userInfo objectForKey:@"ID"] isEqualToString:[tDic objectForKey:@"ID"]]) {
-            [[SVData sharedInstance] deleteAlarmInfo:tDic];
             [[UIApplication sharedApplication] cancelLocalNotification:noti];
-            break;
         }
     }
 }

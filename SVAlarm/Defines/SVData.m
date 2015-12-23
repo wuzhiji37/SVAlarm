@@ -50,11 +50,14 @@
     }
     return self;
 }
-- (void)addAlarmInfo:(NSMutableDictionary *)info {
-    [_alarmArray addObject:info];
+- (void)synchronizeAlarmArray {
     [self sortAlarmArray];
     [userDefaults setObject:_alarmArray forKey:@"alarmArray"];
     [userDefaults synchronize];
+}
+- (void)addAlarmInfo:(NSMutableDictionary *)info {
+    [_alarmArray addObject:info];
+    [self synchronizeAlarmArray];
 }
 - (void)changeAlarmInfo:(NSMutableDictionary *)info {
     for (int i = 0; i<self.alarmArray.count; i++) {
@@ -64,9 +67,7 @@
             break;
         }
     }
-    [self sortAlarmArray];
-    [userDefaults setObject:_alarmArray forKey:@"alarmArray"];
-    [userDefaults synchronize];
+    [self synchronizeAlarmArray];
 }
 - (void)deleteAlarmInfo:(NSMutableDictionary *)info {
     for (int i = 0; i<self.alarmArray.count; i++) {
@@ -76,9 +77,7 @@
             break;
         }
     }
-    [self sortAlarmArray];
-    [userDefaults setObject:_alarmArray forKey:@"alarmArray"];
-    [userDefaults synchronize];
+    [self synchronizeAlarmArray];
 }
 - (void)sortAlarmArray {
     NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.alarmArray];
